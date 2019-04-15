@@ -1,0 +1,29 @@
+// Allow plugins to declare Maven dependencies via build-extras.gradle.
+allprojects {
+    repositories {
+        mavenCentral();
+        jcenter()
+        maven {url 'http://maven.aliyun.com/nexus/content/repositories/releases/'}
+        maven {url 'https://dl.bintray.com/polyv/android'}
+    }
+}
+
+
+configurations {
+  //在整个构建过程中排除com.aliyun.ams:alicloud-android-utdid
+  all*.exclude group: 'com.aliyun.ams', module: 'alicloud-android-utdid'
+}
+
+dependencies {
+  compile fileTree(dir: 'libs', include: ['*.jar'])
+  testCompile 'junit:junit:4.12'
+  androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+    exclude group: 'com.android.support', module: 'support-annotations'
+  })
+
+  compile 'com.easefun.polyv:polyvPlayer:2.5.2'//SDK核心包
+  compile 'com.easefun.polyv:polyvPlayerABI:1.6.0'//SDK核心包
+  compile 'com.easefun.polyv:polyvDownload:2.5.0'//SDK下载功能
+  compile 'de.hdodenhof:circleimageview:2.2.0'//圆形imageview，音频封面图使用
+  compile 'com.nostra13.universalimageloader:universal-image-loader:1.9.5'//demo中图片使用
+}

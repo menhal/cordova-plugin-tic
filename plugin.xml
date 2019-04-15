@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin xmlns="http://www.phonegap.com/ns/plugins/1.0"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        id="cordova-plugin-tic"
+        version="1.0.0">
+
+    <name>cordova-plugin-tic</name>
+    <description>Cordova/Phonegap plugin to play tic</description>
+    <author>Menghao</author>
+
+
+	<js-module src="www/tic.js" name="tic">
+        <clobbers target="Tic" />
+    </js-module>
+    
+
+ 
+    <platform name="ios">
+        <config-file target="config.xml" parent="/*">
+            <feature name="Tic">
+                <param name="ios-package" value="Tic"/>
+                <param name="onload" value="true" />
+            </feature>
+        </config-file>
+
+        <config-file target="*-Info.plist" parent="NSMicrophoneUsageDescription">
+            <string>获取麦克风权限</string>
+        </config-file>
+
+        <config-file target="*-Info.plist" parent="NSCameraUsageDescription">
+            <string>获取相机权限</string>
+        </config-file>
+
+        <framework src="TICSDK" type="podspec" spec="~> 1.7.2" />
+
+        <header-file src="src/ios/Tic.h" />
+        <source-file src="src/ios/Tic.m" />
+    </platform>
+
+  
+   
+    <!-- 
+    <platform name="android">
+    
+		<engines>
+			<engine name="cordova" version=">=6.2.0" />
+			<engine name="cordova-android" version=">=6.0.0" />
+		</engines>
+
+        <config-file parent="/*" target="AndroidManifest.xml">
+            <uses-permission android:name="android.permission.INTERNET"/>
+            <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+            <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+            <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+            <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+        </config-file>
+
+        <config-file parent="/*" target="res/xml/config.xml">
+            <feature name="Tic">
+                <param name="android-package" value="com.easefun.polyvsdk.cordova.PolyvPlayer"/>
+            </feature>
+        </config-file>
+
+		<source-file src="src/android/polyvsdk/bean/PolyvDownloadInfo.java" target-dir="src/com/easefun/polyvsdk/bean" />
+		<source-file src="src/android/polyvsdk/bean/PolyvUploadInfo.java" target-dir="src/com/easefun/polyvsdk/bean" />
+        <framework src="repositories.gradle" custom="true" type="gradleReference" />
+    </platform>
+
+
+    -->
+
+</plugin>
