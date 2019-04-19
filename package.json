@@ -1,9 +1,12 @@
 {
-  "name": "CordovaTic",
+  "name": "cordova-plugin-tic",
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
-  "repository": "http://172.16.0.11:8000/menghao/cordova-plugin-polyvplayer.git",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/menhal/cordova-plugin-tic.git"
+  },
   "author": "Menghao <menhal@qq.com>",
   "dependencies": {
     "glob": "^7.1.3"
