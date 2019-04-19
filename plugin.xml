@@ -35,6 +35,9 @@
 
         <header-file src="src/ios/Tic.h" />
         <source-file src="src/ios/Tic.m" />
+
+        <header-file src="src/ios/ClassroomViewController.h" />
+        <source-file src="src/ios/ClassroomViewController.m" />
     </platform>
 
   
