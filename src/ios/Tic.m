@@ -2,70 +2,90 @@
 #import <Cordova/CDV.h>
 #import <Cordova/CDVPlugin.h>
 #import <TICSDK/TICSDK.h>
-//#import "ClassroomViewController.h"
+#import "ClassroomViewController.h"
 
 @implementation Tic
+
 - (void) join:(CDVInvokedUrlCommand*)command
 {
-    NSString *roomId = [command.arguments objectAtIndex:0];
-//    NSDictionary *args = [command.arguments objectAtIndex:1];
-//    double start = [[args valueForKey:@"start"] doubleValue];
+    callbackId = command.callbackId;
     
-    NSLog(@"RoomId:%@", roomId);
+    NSDictionary *args = [command.arguments objectAtIndex:0];
     
-    [self login:command];
-}
-
-
-- (void) login:(CDVInvokedUrlCommand*)command
-{
-
-//    NSString *userName = [command.arguments objectAtIndex:0];
-//    NSString *userSig = [command.arguments objectAtIndex:1];
-    
-    NSString *roomId = [command.arguments objectAtIndex:0];
-    
-    NSString *userName =  @"iOS_trtc_01";
-    NSString *userSig = @"eJxlj11PgzAUhu-5FU2vjSsf5cM7XLbYqFtYZzavGoQCDQy6cjAjxv*uoslIPLfPk-d9z4eFEML7J36bZlk3tCBg1BKjO4QJvrlCrVUuUhCuyf9BedHKSJEWIM0EbUqpQ8jcUblsQRXqz1BbLsBAJog9k-q8FlPTb4pHyHeKG3pzRZUTfF69LlmyPAKrnbB6GTT4MoQ4WO1IcjpSLwrq3cEf1*kmI6ypDpuEVTHjiz5utmPpVWuanM-5vlN8fJPaXxRcPpSsfLSby5AN9f2sEtRJXt*KaBDNB71L06uunQSH2NR2XPJz2Pq0vgCGhl9d";
+    NSString *roomId = [args valueForKey:@"roomId"];
+    NSString *userName = [args valueForKey:@"userName"];
+    NSString *userSig = [args valueForKey:@"userSig"];
     
     [[TICManager sharedInstance] loginWithUid:userName userSig:userSig succ:^{
         NSLog(@"登录成功！");
-        [self joinRoom: roomId];
+        [self joinRoom: roomId args: args];
     } failed:^(NSString *module, int errId, NSString *errMsg) {
-        NSLog(@"登录失败：%@", errMsg);
+//        NSLog(@"登录失败：%@", errMsg);
+        [self showErrorMessage: errId errMsg: errMsg];
     }];
     
 }
 
 
-
-- (void) joinRoom: (NSString *)inputRoomID
+- (void) joinRoom: (NSString *)inputRoomID args:(NSDictionary*)args
 {
     if (inputRoomID.length <= 0) {
         return;
     }
     
-//    ClassroomViewController *classroomVC = [[ClassroomViewController alloc] initWithClasssID:inputRoomID];
+    NSString *teacherId = [args valueForKey:@"teacherId"];
+    
+    ClassroomViewController *classroomVC = [[ClassroomViewController alloc] initWithClasssID:inputRoomID teacherId: teacherId];
+  
     
     [[TICManager sharedInstance] joinClassroomWithOption:^TICClassroomOption *(TICClassroomOption *option) {
         option.roomID = [inputRoomID intValue];
         option.role = kClassroomRoleStudent;
-        option.eventListener = self;
-        option.imListener = self;
+        option.eventListener = classroomVC;
+        option.imListener = classroomVC;
         option.controlRole = @"ed640";
         return option;
     } succ:^{
         NSLog(@"进入房间成功");
-//        [self.navigationController pushViewController:classroomVC animated:YES];
+        UIViewController *rootViewController = [[UIApplication sharedApplication] keyWindow].rootViewController;
+        
+        UIView *rootView = rootViewController.view ;
+        
+        
+        [rootViewController addChildViewController:classroomVC];
+        [rootView addSubview:classroomVC.view];
+        
     } failed:^(NSString *module, int errId, NSString *errMsg) {;
-         NSLog(@"进入房间失败：%d %@", errId, errMsg);
+//         NSLog(@"进入房间失败：%d %@", errId, errMsg);
+        [self showErrorMessage: errId errMsg: errMsg];
     }];
 }
 
-- (void) pluginInitialize{
-      NSLog(@"初始化插件");
+
+- (void) quit:(CDVInvokedUrlCommand*)command
+{
+    // 退出课堂
+    [[TICManager sharedInstance] quitClassroomSucc:^{
+        NSLog(@"退房成功");
+    } failed:^(NSString *module, int errId, NSString *errMsg) {
+//        NSLog(@"退出房间失败：%d-%@", errId, errMsg);
+        [self showErrorMessage: errId errMsg: errMsg];
+    }];
+}
+
+- (void) showErrorMessage: (int)errId errMsg: (NSString *)errMsg
+{
+    NSDictionary *message = @{@"errId" : @(errId), @"errMsg" : errMsg};
     
-    [[TICManager sharedInstance] initSDK: @"1400200384"];
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary: message];
+    [pluginResult setKeepCallbackAsBool:true];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId: callbackId];
+}
+
+
+- (void) pluginInitialize{
+    NSLog(@"初始化插件");
+    [[TICManager sharedInstance] initSDK: @"1400203905"];
 }
 
 - (void) onReset{
@@ -73,9 +93,7 @@
 }
 
 - (void) dealloc {
-  //[player release];
-  //[movie release];
-  //[super dealloc];
+
 }
 
 @end
