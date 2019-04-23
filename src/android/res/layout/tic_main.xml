@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#4fbfff"
+    android:orientation="vertical">
+
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:orientation="vertical" >
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="2"
+        android:orientation="horizontal">
+
+
+      <com.tencent.boardsdk.board.WhiteboardView
+          android:id="@+id/whiteboardview"
+          android:layout_width="0dp"
+          android:layout_height="match_parent"
+          android:layout_margin="10dp"
+          android:layout_weight="6"
+          android:visibility="visible" />
+
+
+      <LinearLayout
+          android:orientation="vertical"
+          android:layout_width="0dp"
+          android:layout_weight="4"
+          android:layout_margin="10dp"
+          android:layout_height="match_parent">
+
+
+        <com.tencent.ilivesdk.view.ILiveRootView
+            android:id="@+id/av_root_view"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="3"
+            android:layout_marginBottom="10dp"
+            android:visibility="visible" />
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+          <Button
+              android:id="@+id/button"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:text="举手" />
+
+        </LinearLayout>
+
+
+      </LinearLayout>
+
+
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:id="@+id/av_root_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_margin="10dp"
+        android:orientation="horizontal">
+
+
+      <!--<com.tencent.ilivesdk.view.ILiveRootView-->
+      <!--android:id="@+id/av_root_view2"-->
+      <!--android:layout_width="120dp"-->
+      <!--android:layout_height="match_parent"-->
+      <!--android:layout_margin="5dp"-->
+      <!--android:visibility="visible"/>-->
+
+    </LinearLayout>
+
+  </LinearLayout>
+
+
+
+
+</FrameLayout>

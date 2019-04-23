@@ -4,6 +4,7 @@
 #import <TICSDK/TICSDK.h>
 #import "ClassroomViewController.h"
 
+
 @implementation Tic
 
 - (void) join:(CDVInvokedUrlCommand*)command
@@ -35,7 +36,7 @@
     
     NSString *teacherId = [args valueForKey:@"teacherId"];
     
-    ClassroomViewController *classroomVC = [[ClassroomViewController alloc] initWithClasssID:inputRoomID teacherId: teacherId];
+    ClassroomViewController *classroomVC = [[ClassroomViewController alloc] initWithClasssID:inputRoomID teacherId: teacherId plugin: self];
   
     
     [[TICManager sharedInstance] joinClassroomWithOption:^TICClassroomOption *(TICClassroomOption *option) {
@@ -46,16 +47,23 @@
         option.controlRole = @"ed640";
         return option;
     } succ:^{
-        NSLog(@"进入房间成功");
+
         UIViewController *rootViewController = [[UIApplication sharedApplication] keyWindow].rootViewController;
         
         UIView *rootView = rootViewController.view ;
         
         
+        
+        
+        
         [rootViewController addChildViewController:classroomVC];
         [rootView addSubview:classroomVC.view];
         
-    } failed:^(NSString *module, int errId, NSString *errMsg) {;
+        
+        [self showSuccessMessage];
+        NSLog(@"进入房间成功");
+        
+    } failed:^(NSString *module, int errId, NSString *errMsg) {
 //         NSLog(@"进入房间失败：%d %@", errId, errMsg);
         [self showErrorMessage: errId errMsg: errMsg];
     }];
@@ -71,6 +79,13 @@
 //        NSLog(@"退出房间失败：%d-%@", errId, errMsg);
         [self showErrorMessage: errId errMsg: errMsg];
     }];
+}
+
+
+- (void) showSuccessMessage
+{
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId: callbackId];
 }
 
 - (void) showErrorMessage: (int)errId errMsg: (NSString *)errMsg
@@ -93,7 +108,10 @@
 }
 
 - (void) dealloc {
-
+    
 }
+
+
+
 
 @end

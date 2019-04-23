@@ -13,7 +13,6 @@
         <clobbers target="Tic" />
     </js-module>
     
-
  
     <platform name="ios">
         <config-file target="config.xml" parent="/*">
@@ -42,7 +41,6 @@
 
   
    
-    <!-- 
     <platform name="android">
     
 		<engines>
@@ -50,22 +48,21 @@
 			<engine name="cordova-android" version=">=6.0.0" />
 		</engines>
 
-        <config-file parent="/*" target="AndroidManifest.xml">
+        <!-- <config-file parent="/*" target="AndroidManifest.xml">
             <uses-permission android:name="android.permission.INTERNET"/>
             <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
             <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
             <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
             <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-        </config-file>
+        </config-file> -->
 
         <config-file parent="/*" target="res/xml/config.xml">
             <feature name="Tic">
-                <param name="android-package" value="com.easefun.polyvsdk.cordova.PolyvPlayer"/>
+                <param name="android-package" value="com.tencent.ticsdk.cordova.Tic"/>
             </feature>
         </config-file>
 
-		<source-file src="src/android/polyvsdk/bean/PolyvDownloadInfo.java" target-dir="src/com/easefun/polyvsdk/bean" />
-		<source-file src="src/android/polyvsdk/bean/PolyvUploadInfo.java" target-dir="src/com/easefun/polyvsdk/bean" />
+		<source-file src="src/android/com/tencent/ticsdk/cordova/Tic.java" target-dir="src/com/tencent/ticsdk/cordova" />
         <framework src="repositories.gradle" custom="true" type="gradleReference" />
     </platform>
 

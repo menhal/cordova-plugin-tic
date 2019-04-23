@@ -18,10 +18,12 @@
 #define sVideoH SCREEN_HEIGHT * 0.3 // 小屏幕视频宽度
 
 #import "ClassroomViewController.h"
+#import <objc/message.h>
 
 @interface ClassroomViewController () <UITextFieldDelegate> {
     NSString *_classID;
     NSString *_teacherId;
+    CDVPlugin *_plugin;
 }
 @property (nonatomic, strong) TXBoardView *boardView;     //!< 白板
 @property (nonatomic, strong) UITextView *chatView;       //!< 聊天视图
@@ -32,12 +34,20 @@
 
 @implementation ClassroomViewController
 
-- (instancetype)initWithClasssID:(NSString *)classId teacherId: (NSString *) teacherId{
+
+- (BOOL)shouldAutorotate
+{
+    return NO;
+}
+
+- (instancetype)initWithClasssID:(NSString *)classId teacherId: (NSString *) teacherId plugin: (CDVPlugin *)plugin
+{
     self = [super init];
     if (self) {
         _classID = classId;
         _teacherId = teacherId;
         _allStudentsRenderViews = [[NSMutableArray alloc] init];
+        _plugin = plugin;
     }
     
     return self;
@@ -47,8 +57,11 @@
     [super viewDidLoad];
     
     // 强制横屏
-    [[UIDevice currentDevice] setValue:[NSNumber numberWithInteger: UIDeviceOrientationLandscapeLeft]
-                                forKey:@"orientation"];
+//    [[UIDevice currentDevice] setValue:[NSNumber numberWithInteger: UIDeviceOrientationLandscapeLeft]
+//                                forKey:@"orientation"];
+    
+//    [[UIDevice currentDevice] setValue:3 forKey:@"orientation"];
+    [self changeToOrientation: UIDeviceOrientationLandscapeLeft];
     
     
     self.view.autoresizesSubviews = YES;
@@ -92,8 +105,7 @@
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     
     // 强制竖屏
-    [[UIDevice currentDevice] setValue:[NSNumber numberWithInteger: UIDeviceOrientationPortrait]
-                                forKey:@"orientation"];
+    [self changeToOrientation: UIDeviceOrientationPortrait];
     
     // 退出课堂
     [[TICManager sharedInstance] quitClassroomSucc:^{
@@ -293,9 +305,7 @@
  *  课堂被解散通知
  */
 -(void)onClassroomDestroy {
-    //    [self showAlertWithTitle:@"课程结束" msg:@"老师已经结束了该堂课程" handler:^(UIAlertAction *action) {
-    ////        [self.navigationController popViewControllerAnimated:YES];
-    //    }];
+    [self onQuitRoom];
 }
 
 #pragma mark - Accessor
@@ -304,6 +314,7 @@
     if (!_boardView) {
         _boardView = [[TXBoardView alloc] initWithRoomID:_classID];
         _boardView.frame = CGRectMake(40, 14, kBoardW, kBoardH);
+        [_boardView setBrushModel:TXBoardBrushModelNone]; // 禁止学生端画画
     }
     return _boardView;
 }
@@ -333,10 +344,27 @@
         CGRect frame = CGRectMake(renderViewX, renderViewY, renderViewWidth, renderViewHeight);
         renderView.frame = frame;
         [renderView.layer setCornerRadius:10.0f];
+        [renderView setClipsToBounds:YES];
         
         _mainRenderView = renderView;
     }
     return _mainRenderView;
 }
+
+
+- (void) changeToOrientation: (int) orientation
+{
+    NSMutableArray* result = [[NSMutableArray alloc] init];
+    CDVViewController* vc = (CDVViewController*) _plugin.viewController;
+    
+    [result addObject:[NSNumber numberWithInt:orientation]];
+    
+    SEL selector = NSSelectorFromString(@"setSupportedOrientations:");
+    ((void (*)(CDVViewController*, SEL, NSMutableArray*))objc_msgSend)(vc,selector,result);
+    
+    [[UIDevice currentDevice] setValue:[NSNumber numberWithInteger: orientation]
+                                     forKey:@"orientation"];
+}
+
 
 @end
