@@ -63,7 +63,7 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
 
     @Override
     protected void pluginInitialize() {
-        TICSDK.getInstance().initSDK(cordova.getContext(), sdkappid);
+        TICSDK.getInstance().initSDK(cordova.getActivity(), sdkappid);
         checkCameraAndMicPermission();
     }
 
@@ -74,7 +74,7 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
 
         this.callbackContext = callbackContext;
 
-        JSONObject options = args.getJSONObject(0);
+        final JSONObject options = args.getJSONObject(0);
 //        this.join(options);
 
         cordova.getThreadPool().execute(new Runnable() {
@@ -257,9 +257,9 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
 
 
     private void renderUserVideo(String userId){
-        LinearLayout layout = (LinearLayout) findViewById("av_root_container");
+        final LinearLayout layout = (LinearLayout) findViewById("av_root_container");
 
-        ILiveRootView videoView = new ILiveRootView(mainDialog.getContext());
+        final ILiveRootView videoView = new ILiveRootView(mainDialog.getContext());
         videoView.initViews();
         videoView.render(userId, 1);
         videoView.setDeviceRotation(180);
@@ -316,21 +316,21 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
     }
 
     private boolean checkPermissionAudioRecorder() {
-        if (ContextCompat.checkSelfPermission(cordova.getContext(), Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(cordova.getActivity(), Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             return false;
         }
         return true;
     }
 
     private boolean checkPermissionCamera() {
-        if (ContextCompat.checkSelfPermission(cordova.getContext(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(cordova.getActivity(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             return false;
         }
         return true;
     }
 
     private boolean checkPermissionStorage() {
-        if (ContextCompat.checkSelfPermission(cordova.getContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(cordova.getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             return false;
         }
         return true;
