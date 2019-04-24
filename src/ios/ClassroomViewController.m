@@ -201,7 +201,7 @@
         [self sendC2CMessageToTeacher:@"TIMCustomHandRecOpenOk"];
     } else if([message isEqualToString:@"TIMCustomHandReplyNo"]){
         [self setMic:false];
-        [self sendC2CMessageToTeacher:@"IMCustomHandRecCloseOk"];
+        [self sendC2CMessageToTeacher:@"TIMCustomHandRecCloseOk"];
     }
 }
 

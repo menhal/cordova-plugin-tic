@@ -148,7 +148,7 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
         TICClassroomOption classroomOption = new TICClassroomOption()
                 .setRoomId(roomid)
                 .controlRole("ed640") //在参数对实时音视频的质量有较大影响，建议开发配置。；详情请移步：https://github.com/zhaoyang21cn/edu_project/blob/master/%E6%8E%A5%E5%85%A5%E6%8C%87%E5%BC%95%E6%96%87%E6%A1%A3/%E5%BC%80%E9%80%9A%E5%92%8C%E9%85%8D%E7%BD%AE%E8%85%BE%E8%AE%AF%E4%BA%91%E6%9C%8D%E5%8A%A1.md
-                .autoSpeaker(false)
+                .autoSpeaker(true)
                 .setRole(TICClassroomOption.Role.STUDENT)
                 .autoCamera(true)
                 .autoMic(false)
@@ -404,7 +404,7 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
             sendC2CMessageToTeacher("TIMCustomHandRecOpenOk");
             setMic(true);
         } else if(message.equals("TIMCustomHandReplyNo")){
-            sendC2CMessageToTeacher("IMCustomHandRecCloseOk");
+            sendC2CMessageToTeacher("TIMCustomHandRecCloseOk");
             setMic(false);
         }
     }
