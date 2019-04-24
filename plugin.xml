@@ -67,10 +67,9 @@
         <source-file src="src/android/com/tencent/ticsdk/cordova/observer/ClassroomIMObservable.java" target-dir="src/com/tencent/ticsdk/cordova/observer/ClassroomIMObservable.java" />
         <source-file src="src/android/com/tencent/ticsdk/cordova/observer/UserStatusObservable.java" target-dir="src/com/tencent/ticsdk/cordova/observer/UserStatusObservable.java" />
         <resource-file src="src/android/res/layout/tic_main.xml" target="res/layout/tic_main.xml" />
+        <resource-file src="src/android/res/drawable-hdpi/hand.png" target="res/drawable-hdpi/hand.png" />
         <framework src="repositories.gradle" custom="true" type="gradleReference" />
+
     </platform>
-
-
-    -->
 
 </plugin>

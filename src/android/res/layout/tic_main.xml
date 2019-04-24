@@ -30,32 +30,34 @@
 
 
       <LinearLayout
-          android:orientation="vertical"
           android:layout_width="0dp"
-          android:layout_weight="4"
+          android:layout_height="match_parent"
           android:layout_margin="10dp"
-          android:layout_height="match_parent">
+          android:layout_weight="4"
+          android:background="#ffffff"
+          android:orientation="vertical">
 
 
         <com.tencent.ilivesdk.view.ILiveRootView
             android:id="@+id/av_root_view"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="3"
             android:layout_marginBottom="10dp"
+            android:layout_weight="3"
             android:visibility="visible" />
 
 
         <LinearLayout
+            android:gravity="center_horizontal"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1">
 
           <Button
               android:id="@+id/button"
-              android:layout_width="match_parent"
+              android:layout_width="wrap_content"
               android:layout_height="wrap_content"
-              android:text="举手" />
+              android:background="@drawable/hand" />
 
         </LinearLayout>
 
