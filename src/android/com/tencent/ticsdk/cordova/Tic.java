@@ -16,6 +16,7 @@ import android.widget.LinearLayout;
 
 import com.tencent.TIMMessage;
 import com.tencent.TIMUserStatusListener;
+import com.tencent.boardsdk.board.WhiteboardView;
 import com.tencent.ilivesdk.ILiveCallBack;
 import com.tencent.ilivesdk.ILiveConstants;
 import com.tencent.ilivesdk.ILiveSDK;
@@ -151,6 +152,7 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
                 .setRole(TICClassroomOption.Role.STUDENT)
                 .autoCamera(true)
                 .autoMic(false)
+                .setEnableWhiteboard(false)
                 .setClassroomIMListener(ClassroomIMObservable.getInstance())
                 .setClassEventListener(ClassEventObservable.getInstance());
 
@@ -196,6 +198,7 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
 
         Activity activity = cordova.getActivity();
 
+        // 添加主对话框
         mainDialog = new Dialog(activity, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
         mainDialog.setContentView(getIdentifier("tic_main", "layout"));
 
@@ -209,14 +212,15 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
         mainDialog.show();
 
 
+        // 教师屏幕和各学员屏幕
         ILiveRootView teacherVideo = (ILiveRootView) findViewById("av_root_view");
         teacherVideo.initViews();
         teacherVideo.render(teacherId, 1);
 
-
         createMemberVideos();
 
 
+        // 添加举手按钮
         Button button = (Button) findViewById("button");
         button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -224,6 +228,10 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
                 onHandButtonClick();
             }
         });
+
+        // 禁止学员操作白板
+        WhiteboardView whiteboardview = (WhiteboardView) findViewById("whiteboardview");
+        whiteboardview.setWhiteboardEnable(false);
 
         log("加入房间成功");
     }
