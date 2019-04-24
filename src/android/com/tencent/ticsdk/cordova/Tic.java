@@ -42,7 +42,6 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.ionic.starter.R;
 
 
 public class Tic extends CordovaPlugin implements IClassEventListener, IClassroomIMListener, TIMUserStatusListener {
@@ -198,7 +197,7 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
         Activity activity = cordova.getActivity();
 
         mainDialog = new Dialog(activity, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
-        mainDialog.setContentView(R.layout.tic_main);
+        mainDialog.setContentView(getIdentifier("tic_main", "layout"));
 
         mainDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
@@ -210,7 +209,7 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
         mainDialog.show();
 
 
-        ILiveRootView teacherVideo = (ILiveRootView) mainDialog.findViewById(R.id.av_root_view);
+        ILiveRootView teacherVideo = (ILiveRootView) findViewById("av_root_view");
         teacherVideo.initViews();
         teacherVideo.render(teacherId, 1);
 
@@ -218,7 +217,7 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
         createMemberVideos();
 
 
-        Button button = mainDialog.findViewById(R.id.button);
+        Button button = (Button) findViewById("button");
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -237,7 +236,7 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
     private void createMemberVideos(){
 
         ContextEngine contextEngine = ILiveSDK.getInstance().getContextEngine();
-        LinearLayout layout = mainDialog.findViewById(R.id.av_root_container);
+        LinearLayout layout = (LinearLayout) findViewById("av_root_container");
         layout.removeAllViewsInLayout();
 
         renderUserVideo(layout, userId);
@@ -435,6 +434,29 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
             log("返回插件信息失败");
         }
 
+    }
+
+
+    /**
+     * findViewById
+     *
+     * @param viewId
+     * @return
+     */
+    private View findViewById(String viewId) {
+        return this.mainDialog.findViewById(getIdentifier(viewId, "id"));
+    }
+
+    /**
+     * getIdentifier
+     *
+     * @param viewId
+     * @param type
+     * @return
+     */
+    private int getIdentifier(String viewId, String type) {
+        Activity activity = cordova.getActivity();
+        return activity.getResources().getIdentifier(viewId, type, activity.getPackageName());
     }
 
     private void log(String msg){
