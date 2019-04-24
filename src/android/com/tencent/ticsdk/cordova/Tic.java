@@ -190,6 +190,7 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
 
     private void onJoinRoomSuccess(){
         cordova.getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+        sendPluginResult();
 
 
         ClassEventObservable.getInstance().addObserver(this);
@@ -242,25 +243,22 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
 
 
     private void createMemberVideos(){
+        renderUserVideo(userId);
 
         ContextEngine contextEngine = ILiveSDK.getInstance().getContextEngine();
-        LinearLayout layout = (LinearLayout) findViewById("av_root_container");
-        layout.removeAllViewsInLayout();
-
-        renderUserVideo(layout, userId);
-
-
         List<String> userList = contextEngine.getVideoUserList(CommonConstants.Const_VideoType_Camera);
 
         for (String userId : userList) {
             if(userId.equals(teacherId)) continue;
-            renderUserVideo(layout, userId);
+            if(userId.equals(userId)) continue;
+            renderUserVideo(userId);
         }
-
     }
 
 
-    private void renderUserVideo(LinearLayout layout, String userId){
+    private void renderUserVideo(String userId){
+        LinearLayout layout = (LinearLayout) findViewById("av_root_container");
+
         ILiveRootView videoView = new ILiveRootView(mainDialog.getContext());
         videoView.initViews();
         videoView.render(userId, 1);
@@ -268,7 +266,6 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
 
 
         layout.addView(videoView);
-
 
         layout.post(new Runnable(){
             public void run(){
@@ -278,6 +275,18 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
                 videoView.setLayoutParams(lp);
             }
         });
+    }
+
+
+
+    private void removeUserVideo(String userId){
+        LinearLayout layout = (LinearLayout) findViewById("av_root_container");
+
+        for (int i = 0; i < layout.getChildCount(); i++) {
+            ILiveRootView video = (ILiveRootView) layout.getChildAt(i);
+            if(video.getIdentifier().equals(userId)) layout.removeView(video);
+        }
+
     }
 
 
@@ -336,19 +345,29 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
     @Override
     public void onClassroomDestroy(){
         LOG.e("Tic", "onClassroomDestroy");
-        if(mainDialog != null) mainDialog.dismiss();
+        if(mainDialog != null) mainDialog.cancel();
     }
 
     @Override
     public void onMemberJoin(List<String> userList){
         LOG.e("Tic", "onMemberJoin");
-        createMemberVideos();
+
+        for (String newUserId : userList) {
+            if(newUserId.equals(teacherId)) continue;
+            if(newUserId.equals(userId)) continue;
+            renderUserVideo(newUserId);
+        }
     }
 
     @Override
     public void onMemberQuit(List<String> userList){
         LOG.e("Tic", "onMemberQuit");
-        createMemberVideos();
+
+        for (String quitUserId : userList) {
+            if(quitUserId.equals(teacherId)) continue;
+            if(quitUserId.equals(userId)) continue;
+            removeUserVideo(quitUserId);
+        }
     }
 
     @Override
@@ -422,7 +441,9 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
 
 
     private void sendPluginResult(){
-
+        PluginResult pluginResult = new PluginResult(PluginResult.Status.OK);
+        pluginResult.setKeepCallback(true);
+        callbackContext.sendPluginResult(pluginResult);
     }
 
     private void sendErrorMessage(int errCode, String errMsg){
