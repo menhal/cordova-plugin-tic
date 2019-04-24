@@ -29,6 +29,7 @@
 @property (nonatomic, strong) UITextView *chatView;       //!< 聊天视图
 @property (nonatomic, strong) ILiveRenderView *mainRenderView;       //!< 教师视频
 @property (nonatomic, strong) NSMutableArray *allStudentsRenderViews; //所有学生视频
+@property (nonatomic, strong) UIButton *handButton; // 举手按钮
 
 @end
 
@@ -90,6 +91,10 @@
         NSLog(@"启动摄像头失败");
     }];
     
+    // 关闭mic
+    [self setMic:false];
+    
+    
     // 添加按钮
     UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
     [button addTarget:self action:@selector(onQuitRoom) forControlEvents:UIControlEventTouchUpInside];
@@ -99,6 +104,9 @@
 //    button.backgroundColor = UIColor.whiteColor;
     [self.view addSubview:button];
     [self.view bringSubviewToFront:button];
+
+    // 添加举手按钮
+    [self.view addSubview: self.handButton];
 }
 
 -(void)dealloc {
@@ -128,6 +136,16 @@
     [self.view removeFromSuperview];
 }
 
+// 设置mic
+- (void) setMic: (BOOL) isEnable{
+    // 关闭mic
+    [[TICManager sharedInstance] enableMic:isEnable succ:^{
+        NSLog(@"设置mic成功");
+    } failed:^(NSString *module, int errId, NSString *errMsg) {
+        NSLog(@"设置mic失败");
+    }];
+}
+
 // 房间内上麦用户数量变化时调用，重新布局所有渲染视图，这里简单处理，从左到右等分布局，开发者可以根据自己业务自定义布局
 - (void)onCameraNumChange {
     // 获取当前所有渲染视图
@@ -155,25 +173,45 @@
 
 
 #pragma mark - TICClassroomIMListener
+
 // 收到文本消息
 - (void)onRecvTextMsg:(NSString *)text from:(NSString *)fromId type:(TICMessageType)type {
     // 接收到房间内其他成员发出的文本消息，将消息按"[发送者] 消息内容"格式展示在界面上
-    NSString *msgInfo = [NSString stringWithFormat:@"[%@] %@",fromId, text];
-    self.chatView.text = [NSString stringWithFormat:@"%@\n%@",self.chatView.text, msgInfo];
-    [self.chatView scrollRangeToVisible:NSMakeRange(self.chatView.text.length, 1)];
+    if([fromId isEqualToString:_teacherId]){
+        [self onTeacherC2CMessage:text];
+    }
 }
 
 // 收到自定义消息
 - (void)onRecvCustomMsg:(NSData *)data from:(NSString *)fromId type:(TICMessageType)type {
     // 接收到房间内其他成员发出的文本消息，将消息按"[发送者] 消息内容"格式展示在界面上
-    NSString *msgInfo = [NSString stringWithFormat:@"[%@] %@",fromId, @"CUSTOM"];
-    self.chatView.text = [NSString stringWithFormat:@"%@\n%@",self.chatView.text, msgInfo];
-    [self.chatView scrollRangeToVisible:NSMakeRange(self.chatView.text.length, 1)];
+    NSLog(@"%@", data);
 }
 
 // 收到消息
 - (void)onRecvGroupCustomMsg:(NSString *)fromId context:(NSData *)data {
     NSLog(@"");
+}
+
+
+// 接收到老师的消息
+-(void) onTeacherC2CMessage: (NSString *) message{
+    if([message isEqualToString:@"TIMCustomHandReplyYes"]){
+        [self setMic:true];
+        [self sendC2CMessageToTeacher:@"TIMCustomHandRecOpenOk"];
+    } else if([message isEqualToString:@"TIMCustomHandReplyNo"]){
+        [self setMic:false];
+        [self sendC2CMessageToTeacher:@"IMCustomHandRecCloseOk"];
+    }
+}
+
+// 发送消息给老师
+-(void) sendC2CMessageToTeacher: (NSString *) message{
+    [[TICManager sharedInstance] sendTextMessage:message toUser:_teacherId succ:^{
+        NSLog(@"消息发送成功");
+    } failed:^(NSString *module, int errId, NSString *errMsg) {
+        NSLog(@"消息发送失败: %@", errMsg);
+    }];
 }
 
 
@@ -301,6 +339,11 @@
     self.chatView.text = [NSString stringWithFormat:@"%@\n%@",self.chatView.text, msgInfo];;
 }
 
+// 点击举手按钮
+-(void) onHandButtonClick{
+    [self sendC2CMessageToTeacher:@"TIMCustomHand"];
+}
+
 /**
  *  课堂被解散通知
  */
@@ -349,6 +392,21 @@
         _mainRenderView = renderView;
     }
     return _mainRenderView;
+}
+
+// 举手按钮
+- (UIButton *) handButton{
+    if(!_handButton){
+        UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+        [button addTarget:self action:@selector(onHandButtonClick) forControlEvents:UIControlEventTouchUpInside];
+        [button setTitle:@"举手" forState:UIControlStateNormal];
+        [button setTitleColor:UIColor.blueColor forState:UIControlStateNormal];
+        button.frame = CGRectMake(40 + kBoardW + 20, 14 + kVideoH, kVideoW, 30.0);
+        
+        _handButton = button;
+    }
+    
+    return _handButton;
 }
 
 

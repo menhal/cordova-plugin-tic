@@ -74,14 +74,6 @@
         android:layout_margin="10dp"
         android:orientation="horizontal">
 
-
-      <!--<com.tencent.ilivesdk.view.ILiveRootView-->
-      <!--android:id="@+id/av_root_view2"-->
-      <!--android:layout_width="120dp"-->
-      <!--android:layout_height="match_parent"-->
-      <!--android:layout_margin="5dp"-->
-      <!--android:visibility="visible"/>-->
-
     </LinearLayout>
 
   </LinearLayout>

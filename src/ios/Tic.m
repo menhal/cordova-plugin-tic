@@ -100,7 +100,7 @@
 
 - (void) pluginInitialize{
     NSLog(@"初始化插件");
-    [[TICManager sharedInstance] initSDK: @"1400203905"];
+    [[TICManager sharedInstance] initSDK: @"1400204887"];
 }
 
 - (void) onReset{

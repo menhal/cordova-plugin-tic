@@ -59,10 +59,15 @@
         <config-file parent="/*" target="res/xml/config.xml">
             <feature name="Tic">
                 <param name="android-package" value="com.tencent.ticsdk.cordova.Tic"/>
+                 <param name="onload" value="true" />
             </feature>
         </config-file>
 
 		<source-file src="src/android/com/tencent/ticsdk/cordova/Tic.java" target-dir="src/com/tencent/ticsdk/cordova" />
+        <source-file src="src/android/com/tencent/ticsdk/cordova/observer/ClassEventObservable.java" target-dir="src/com/tencent/ticsdk/cordova/observer/ClassEventObservable.java" />
+        <source-file src="src/android/com/tencent/ticsdk/cordova/observer/ClassroomIMObservable.java" target-dir="src/com/tencent/ticsdk/cordova/observer/ClassroomIMObservable.java" />
+        <source-file src="src/android/com/tencent/ticsdk/cordova/observer/UserStatusObservable.java" target-dir="src/com/tencent/ticsdk/cordova/observer/UserStatusObservable.java" />
+        <resource-file src="src/android/res/layout/tic_main.xml" target="res/layout/tic_main.xml" />
         <framework src="repositories.gradle" custom="true" type="gradleReference" />
     </platform>
 

@@ -2,22 +2,17 @@ package com.tencent.ticsdk.cordova;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.FragmentTransaction;
 import android.content.DialogInterface;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
-import android.nfc.Tag;
 import android.os.Build;
-import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.Toast;
 
 import com.tencent.TIMMessage;
 import com.tencent.TIMUserStatusListener;
@@ -26,7 +21,6 @@ import com.tencent.ilivesdk.ILiveConstants;
 import com.tencent.ilivesdk.ILiveSDK;
 import com.tencent.ilivesdk.adapter.CommonConstants;
 import com.tencent.ilivesdk.adapter.ContextEngine;
-import com.tencent.ilivesdk.core.ILiveRoomManager;
 import com.tencent.ilivesdk.view.ILiveRootView;
 import com.tencent.ticsdk.TICClassroomOption;
 import com.tencent.ticsdk.TICManager;
@@ -35,26 +29,17 @@ import com.tencent.ticsdk.listener.IClassEventListener;
 import com.tencent.ticsdk.listener.IClassroomIMListener;
 import com.tencent.ticsdk.observer.ClassEventObservable;
 import com.tencent.ticsdk.observer.ClassroomIMObservable;
-import com.tencent.ticsdk.observer.UserStatusObservable;
-import com.tencent.ticsdk.views.LivingVideoView;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaArgs;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.LOG;
-import org.apache.cordova.PluginResult;
 
-import org.apache.cordova.CallbackContext;
-import org.apache.cordova.CordovaArgs;
-import org.apache.cordova.CordovaPlugin;
-import org.apache.cordova.LOG;
 import org.apache.cordova.PluginResult;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 import io.ionic.starter.R;
@@ -65,13 +50,19 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
     //    CallbackContext callbackContext;
     final static int REQUEST_CODE = 1;
 
-    boolean isRunning = false;
-    Dialog mainDialog = null;
-    ILiveRootView videoViews[] = new ILiveRootView[0];
+    private boolean isRunning = false;
+    private Dialog mainDialog = null;
+
+    private int sdkappid = 1400204887;
+    private int roomId = 0;
+    private String teacherId = "";
+    private String userId = "";
+    private String userSig = "";
+    private CallbackContext callbackContext = null;
+
 
     @Override
     protected void pluginInitialize() {
-        int sdkappid = 1400204887;
         TICSDK.getInstance().initSDK(cordova.getContext(), sdkappid);
         checkCameraAndMicPermission();
     }
@@ -79,18 +70,29 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
 
     @Override
     public boolean execute(String action, CordovaArgs args, CallbackContext callbackContext) throws JSONException {
-        if(isRunning) return false;
+        if(isRunning) return true;
+
+        this.callbackContext = callbackContext;
 
         JSONObject options = args.getJSONObject(0);
+//        this.join(options);
+
+        cordova.getThreadPool().execute(new Runnable() {
+            @Override
+            public void run() {
+                join(options);
+            }
+        });
 
         isRunning = true;
-        this.join();
         return true;
     }
 
-    private void join(){
-        String userId = "Android_trtc_01";
-        String userSig = "eJxlj11PgzAYhe-5FYRbjL60fJp4oZUMFkGZM8arhkGpnQpNKXOb8b*7oVESz*3z5JycD8M0TWt5c39aVlU3tJrqnWSWeW5aYJ38QSlFTUtNsar-QbaVQjFaNpqpETqe5yGAqSNq1mrRiB-jsq1Vd2jUSlcUnInY1y90XPtucgEQuGEYTBXBR5jFDyQtyAJntw4n6ypp5nY55H5OwA4RDPF6OdM6zdlsE5CneeQWKX8866*lJjbPVsn73St6Fskq9PlCFNyt5N7eYgzRPgnjK-diMqnFG-u9FmE-iPwJ3TDVi64dBQSO5yAMx1jGp-EFtt1e2A__";
+    private void join(JSONObject options){
+        userId = options.optString("userName");
+        userSig = options.optString("userSig");
+        roomId = options.optInt("roomId");
+        teacherId = options.optString("teacherId");
 
         this.login(userId, userSig);
     }
@@ -99,29 +101,32 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
         TICManager.getInstance().login(userid, userSig, new ILiveCallBack() {
             @Override
             public void onSuccess(Object data) {
-                LOG.e("Tic", "登录成功");
+                log("登录成功");
                 onLoginSuccess();
             }
 
             @Override
             public void onError(String module, int errCode, String errMsg) {
-                LOG.e("Tic", "登录失败："+ errMsg);
+                sendErrorMessage(errCode, errMsg);
                 isRunning = false;
             }
         });
     }
 
     private void logout() {
+
+        cordova.getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
+
         // this code is not executed
         TICManager.getInstance().quitClassroom(new ILiveCallBack() {
             @Override
             public void onSuccess(Object data) {
-                LOG.e("Tic", "退出成攻");
+                log("退出成功");
             }
 
             @Override
             public void onError(String module, int errCode, String errMsg) {
-                LOG.e("Tic", "退出失败");
+                sendErrorMessage(errCode, errMsg);
             }
         });
 
@@ -134,7 +139,7 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
 
 
     private void onLoginSuccess(){
-        joinClassroom(3);
+        joinClassroom(roomId);
     }
 
 
@@ -164,21 +169,28 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
             }
         });
 
+    }
 
-        TICManager.getInstance().enableCamera(ILiveConstants.FRONT_CAMERA, true, new ILiveCallBack() {
+
+    // 设置mic
+    private void setMic(boolean isEnable){
+        TICManager.getInstance().enableMic(isEnable, new ILiveCallBack() {
             @Override
             public void onSuccess(Object data) {
-                Log.i("Tic", "enableCamera#onSuccess: " + data);
+                log("mic操作成功: " + data);
             }
 
             @Override
             public void onError(String module, int errCode, String errMsg) {
-                Log.i("Tic", "enableCamera#onError: errCode = " + errCode + "  description " + errMsg);
+                sendErrorMessage(errCode, errMsg);
             }
         });
     }
 
     private void onJoinRoomSuccess(){
+        cordova.getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+
+
         ClassEventObservable.getInstance().addObserver(this);
         ClassroomIMObservable.getInstance().addObserver(this);
 
@@ -200,26 +212,25 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
 
         ILiveRootView teacherVideo = (ILiveRootView) mainDialog.findViewById(R.id.av_root_view);
         teacherVideo.initViews();
-        teacherVideo.render("Web_trtc_01", 1);
+        teacherVideo.render(teacherId, 1);
 
 
         createMemberVideos();
-
 
 
         Button button = mainDialog.findViewById(R.id.button);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                onHandButtonClick();
             }
         });
 
-        LOG.e("Tic", "加入房间成功");
+        log("加入房间成功");
     }
 
     private void onJoinRoomFailed(int errCode, String errMsg){
-        LOG.e("Tic", "加入房间失败:"+errMsg);
+        sendErrorMessage(errCode, errMsg);
     }
 
 
@@ -229,12 +240,13 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
         LinearLayout layout = mainDialog.findViewById(R.id.av_root_container);
         layout.removeAllViewsInLayout();
 
+        renderUserVideo(layout, userId);
 
-        renderUserVideo(layout, "Android_trtc_01");
 
+        List<String> userList = contextEngine.getVideoUserList(CommonConstants.Const_VideoType_Camera);
 
-        for (String userId : contextEngine.getVideoUserList(CommonConstants.Const_VideoType_Camera)) {
-            if(userId.equals("Web_trtc_01")) continue;
+        for (String userId : userList) {
+            if(userId.equals(teacherId)) continue;
             renderUserVideo(layout, userId);
         }
 
@@ -245,6 +257,7 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
         ILiveRootView videoView = new ILiveRootView(mainDialog.getContext());
         videoView.initViews();
         videoView.render(userId, 1);
+        videoView.setDeviceRotation(180);
 
 
         layout.addView(videoView);
@@ -322,11 +335,13 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
     @Override
     public void onMemberJoin(List<String> userList){
         LOG.e("Tic", "onMemberJoin");
+        createMemberVideos();
     }
 
     @Override
     public void onMemberQuit(List<String> userList){
         LOG.e("Tic", "onMemberQuit");
+        createMemberVideos();
     }
 
     @Override
@@ -336,11 +351,8 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
 
 
     @Override
-    public void onRecvTextMsg(int type, String s, String s1) {
-//        LinkedList<IClassroomIMListener> tmpList = new LinkedList<>(listObservers);
-//        for (IClassroomIMListener listener : tmpList) {
-//            listener.onRecvTextMsg(type, s, s1);
-//        }
+    public void onRecvTextMsg(int type, String userId, String message) {
+        if(userId.equals(teacherId)) onTeacherC2CMessage(message);
     }
 
     @Override
@@ -359,6 +371,38 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
 //        }
     }
 
+
+    // 接收到老师的消息
+    private void onTeacherC2CMessage(String message){
+        if(message.equals("TIMCustomHandReplyYes")){
+            sendC2CMessageToTeacher("TIMCustomHandRecOpenOk");
+            setMic(true);
+        } else if(message.equals("TIMCustomHandReplyNo")){
+            sendC2CMessageToTeacher("IMCustomHandRecCloseOk");
+            setMic(false);
+        }
+    }
+
+    // 发送消息给老师
+    private void sendC2CMessageToTeacher(String message){
+        TICManager.getInstance().sendTextMessage(teacherId, message, new ILiveCallBack() {
+            @Override
+            public void onSuccess(Object data) {
+                log("发送消息成功");
+            }
+
+            @Override
+            public void onError(String module, int errCode, String errMsg) {
+                sendErrorMessage(errCode, errMsg);
+            }
+        });
+    }
+
+    // 学生举手
+    private void onHandButtonClick(){
+        sendC2CMessageToTeacher("TIMCustomHand");
+    }
+
     @Override
     public void onForceOffline() {
 
@@ -369,7 +413,31 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
 
     }
 
+
+    private void sendPluginResult(){
+
+    }
+
+    private void sendErrorMessage(int errCode, String errMsg){
+
+        try {
+            JSONObject obj = new JSONObject();
+
+            obj.put("errId", errCode);
+            obj.put("errMsg", errMsg);
+
+            PluginResult pluginResult = new PluginResult(PluginResult.Status.ERROR, obj);
+            pluginResult.setKeepCallback(true);
+            callbackContext.sendPluginResult(pluginResult);
+
+            log(errMsg);
+        } catch (Exception e){
+            log("返回插件信息失败");
+        }
+
+    }
+
     private void log(String msg){
-        Log.e("TicSdk", msg);
+        Log.e("Tic", msg);
     }
 }
