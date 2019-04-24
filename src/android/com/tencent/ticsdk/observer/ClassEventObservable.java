@@ -9,7 +9,7 @@ import java.util.List;
 public class ClassEventObservable implements IClassEventListener {
 
     // 成员监听链表
-    private LinkedList<IClassEventListener> listObservers = new LinkedList<>();
+    private LinkedList<IClassEventListener> listObservers = new LinkedList<IClassEventListener>();
     // 句柄
     private static ClassEventObservable instance;
 
@@ -38,7 +38,7 @@ public class ClassEventObservable implements IClassEventListener {
 
     @Override
     public void onLiveVideoDisconnect(int i, String s) {
-        LinkedList<IClassEventListener> tmpList = new LinkedList<>(listObservers);
+        LinkedList<IClassEventListener> tmpList = new LinkedList<IClassEventListener>(listObservers);
         for (IClassEventListener listener : tmpList) {
             listener.onLiveVideoDisconnect(i, s);
         }
@@ -46,7 +46,7 @@ public class ClassEventObservable implements IClassEventListener {
 
     @Override
     public void onClassroomDestroy() {
-        LinkedList<IClassEventListener> tmpList = new LinkedList<>(listObservers);
+        LinkedList<IClassEventListener> tmpList = new LinkedList<IClassEventListener>(listObservers);
         for (IClassEventListener listener : tmpList) {
             listener.onClassroomDestroy();
         }
@@ -54,7 +54,7 @@ public class ClassEventObservable implements IClassEventListener {
 
     @Override
     public void onMemberJoin(List<String> list) {
-        LinkedList<IClassEventListener> tmpList = new LinkedList<>(listObservers);
+        LinkedList<IClassEventListener> tmpList = new LinkedList<IClassEventListener>(listObservers);
         for (IClassEventListener listener : tmpList) {
             listener.onMemberJoin(list);
         }
@@ -62,7 +62,7 @@ public class ClassEventObservable implements IClassEventListener {
 
     @Override
     public void onMemberQuit(List<String> list) {
-        LinkedList<IClassEventListener> tmpList = new LinkedList<>(listObservers);
+        LinkedList<IClassEventListener> tmpList = new LinkedList<IClassEventListener>(listObservers);
         for (IClassEventListener listener : tmpList) {
             listener.onMemberQuit(list);
         }
@@ -70,7 +70,7 @@ public class ClassEventObservable implements IClassEventListener {
 
     @Override
     public void onRecordTimestampRequest(ILiveCallBack<Long> callBack) {
-        LinkedList<IClassEventListener> tmpList = new LinkedList<>(listObservers);
+        LinkedList<IClassEventListener> tmpList = new LinkedList<IClassEventListener>(listObservers);
         for (IClassEventListener listener : tmpList) {
             listener.onRecordTimestampRequest(callBack);
         }

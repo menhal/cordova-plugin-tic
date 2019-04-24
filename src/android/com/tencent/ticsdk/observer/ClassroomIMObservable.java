@@ -7,7 +7,7 @@ import java.util.LinkedList;
 
 public class ClassroomIMObservable implements IClassroomIMListener {
     // 成员监听链表
-    private LinkedList<IClassroomIMListener> listObservers = new LinkedList<>();
+    private LinkedList<IClassroomIMListener> listObservers = new LinkedList<IClassroomIMListener>();
     // 句柄
     private static ClassroomIMObservable instance;
 
@@ -36,7 +36,7 @@ public class ClassroomIMObservable implements IClassroomIMListener {
 
     @Override
     public void onRecvTextMsg(int type, String s, String s1) {
-        LinkedList<IClassroomIMListener> tmpList = new LinkedList<>(listObservers);
+        LinkedList<IClassroomIMListener> tmpList = new LinkedList<IClassroomIMListener>(listObservers);
         for (IClassroomIMListener listener : tmpList) {
             listener.onRecvTextMsg(type, s, s1);
         }
@@ -44,7 +44,7 @@ public class ClassroomIMObservable implements IClassroomIMListener {
 
     @Override
     public void onRecvCustomMsg(int type, String s, byte[] bytes) {
-        LinkedList<IClassroomIMListener> tmpList = new LinkedList<>(listObservers);
+        LinkedList<IClassroomIMListener> tmpList = new LinkedList<IClassroomIMListener>(listObservers);
         for (IClassroomIMListener listener : tmpList) {
             listener.onRecvCustomMsg(type, s, bytes);
         }
@@ -52,7 +52,7 @@ public class ClassroomIMObservable implements IClassroomIMListener {
 
     @Override
     public void onRecvMessage(TIMMessage message) {
-        LinkedList<IClassroomIMListener> tmpList = new LinkedList<>(listObservers);
+        LinkedList<IClassroomIMListener> tmpList = new LinkedList<IClassroomIMListener>(listObservers);
         for (IClassroomIMListener listener : tmpList) {
             listener.onRecvMessage(message);
         }

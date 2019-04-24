@@ -6,7 +6,7 @@ import java.util.LinkedList;
 
 public class UserStatusObservable implements TIMUserStatusListener {
     // 成员监听链表
-    private LinkedList<TIMUserStatusListener> listObservers = new LinkedList<>();
+    private LinkedList<TIMUserStatusListener> listObservers = new LinkedList<TIMUserStatusListener>();
     // 句柄
     private static UserStatusObservable instance;
 
@@ -35,7 +35,7 @@ public class UserStatusObservable implements TIMUserStatusListener {
 
     @Override
     public void onForceOffline() {
-        LinkedList<TIMUserStatusListener> tmpList = new LinkedList<>(listObservers);
+        LinkedList<TIMUserStatusListener> tmpList = new LinkedList<TIMUserStatusListener>(listObservers);
         for (TIMUserStatusListener listener : tmpList) {
             listener.onForceOffline();
         }
@@ -43,7 +43,7 @@ public class UserStatusObservable implements TIMUserStatusListener {
 
     @Override
     public void onUserSigExpired() {
-        LinkedList<TIMUserStatusListener> tmpList = new LinkedList<>(listObservers);
+        LinkedList<TIMUserStatusListener> tmpList = new LinkedList<TIMUserStatusListener>(listObservers);
         for (TIMUserStatusListener listener : tmpList) {
             listener.onUserSigExpired();
         }
