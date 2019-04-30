@@ -7,6 +7,14 @@
 
 @implementation Tic
 
+
+- (void) init:(CDVInvokedUrlCommand*)command
+{
+    NSLog(@"初始化插件");
+     NSString *sdkappid = [command.arguments objectAtIndex:0];
+    [[TICManager sharedInstance] initSDK: sdkappid];
+}
+
 - (void) join:(CDVInvokedUrlCommand*)command
 {
     callbackId = command.callbackId;
@@ -35,6 +43,7 @@
     }
     
     NSString *teacherId = [args valueForKey:@"teacherId"];
+    NSString *role = [args valueForKey:@"role"];
     
     ClassroomViewController *classroomVC = [[ClassroomViewController alloc] initWithClasssID:inputRoomID teacherId: teacherId plugin: self];
   
@@ -44,7 +53,7 @@
         option.role = kClassroomRoleStudent;
         option.eventListener = classroomVC;
         option.imListener = classroomVC;
-        option.controlRole = @"ed640";
+        option.controlRole = role;
         return option;
     } succ:^{
 
@@ -95,12 +104,6 @@
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary: message];
     [pluginResult setKeepCallbackAsBool:true];
     [self.commandDelegate sendPluginResult:pluginResult callbackId: callbackId];
-}
-
-
-- (void) pluginInitialize{
-    NSLog(@"初始化插件");
-    [[TICManager sharedInstance] initSDK: @"1400204887"];
 }
 
 - (void) onReset{

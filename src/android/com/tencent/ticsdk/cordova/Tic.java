@@ -58,43 +58,60 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
     private String teacherId = "";
     private String userId = "";
     private String userSig = "";
+    private String role = "";
     private CallbackContext callbackContext = null;
 
 
-    @Override
-    protected void pluginInitialize() {
-        TICSDK.getInstance().initSDK(cordova.getActivity(), sdkappid);
-        checkCameraAndMicPermission();
-    }
+//    @Override
+//    protected void pluginInitialize() {
+//        TICSDK.getInstance().initSDK(cordova.getActivity(), sdkappid);
+//        checkCameraAndMicPermission();
+//    }
 
 
     @Override
     public boolean execute(String action, CordovaArgs args, CallbackContext callbackContext) throws JSONException {
-        if(isRunning) return true;
 
         this.callbackContext = callbackContext;
 
-        final JSONObject options = args.getJSONObject(0);
-//        this.join(options);
+        if ("init".equals(action)) {
+            int sdkappid = args.optInt(0);
+            init(sdkappid);
+
+        } else if ("join".equals(action)) {
+            JSONObject options = args.optJSONObject(0);
+            join(options);
+
+        }
+
+        return true;
+    }
+
+    private void init(final int sdkappid){
+        this.sdkappid = sdkappid;
 
         cordova.getThreadPool().execute(new Runnable() {
             @Override
             public void run() {
-                join(options);
+                TICSDK.getInstance().initSDK(cordova.getActivity(), sdkappid);
             }
         });
 
-        isRunning = true;
-        return true;
+        checkCameraAndMicPermission();
     }
 
+
     private void join(JSONObject options){
+        if(isRunning) return;
+
         userId = options.optString("userName");
         userSig = options.optString("userSig");
         roomId = options.optInt("roomId");
+        role = options.optString("role");
         teacherId = options.optString("teacherId");
 
         this.login(userId, userSig);
+        isRunning = true;
     }
 
     public void login(String userid, String userSig) {
@@ -147,7 +164,7 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
 
         TICClassroomOption classroomOption = new TICClassroomOption()
                 .setRoomId(roomid)
-                .controlRole("ed640") //在参数对实时音视频的质量有较大影响，建议开发配置。；详情请移步：https://github.com/zhaoyang21cn/edu_project/blob/master/%E6%8E%A5%E5%85%A5%E6%8C%87%E5%BC%95%E6%96%87%E6%A1%A3/%E5%BC%80%E9%80%9A%E5%92%8C%E9%85%8D%E7%BD%AE%E8%85%BE%E8%AE%AF%E4%BA%91%E6%9C%8D%E5%8A%A1.md
+                .controlRole(role) //在参数对实时音视频的质量有较大影响，建议开发配置。；详情请移步：https://github.com/zhaoyang21cn/edu_project/blob/master/%E6%8E%A5%E5%85%A5%E6%8C%87%E5%BC%95%E6%96%87%E6%A1%A3/%E5%BC%80%E9%80%9A%E5%92%8C%E9%85%8D%E7%BD%AE%E8%85%BE%E8%AE%AF%E4%BA%91%E6%9C%8D%E5%8A%A1.md
                 .autoSpeaker(true)
                 .setRole(TICClassroomOption.Role.STUDENT)
                 .autoCamera(true)
