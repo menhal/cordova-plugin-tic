@@ -1,6 +1,7 @@
 package com.tencent.ticsdk.cordova;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -12,6 +13,7 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 
 import com.tencent.TIMMessage;
@@ -52,6 +54,7 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
 
     private boolean isRunning = false;
     private Dialog mainDialog = null;
+    private Button handBtn = null;
 
     private int sdkappid = 1400204887;
     private int roomId = 0;
@@ -90,13 +93,7 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
     private void init(final int sdkappid){
         this.sdkappid = sdkappid;
 
-        cordova.getThreadPool().execute(new Runnable() {
-            @Override
-            public void run() {
-                TICSDK.getInstance().initSDK(cordova.getActivity(), sdkappid);
-            }
-        });
-
+        TICSDK.getInstance().initSDK(cordova.getActivity(), sdkappid);
         checkCameraAndMicPermission();
     }
 
@@ -235,15 +232,52 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
         teacherVideo.initViews();
         teacherVideo.render(teacherId, 1);
 
+
+        LinearLayout teacherVideoContainer = (LinearLayout) findViewById("av_root_view_container");
+
+        if(Build.VERSION.SDK_INT >= 21){
+            teacherVideoContainer.setClipToOutline(true);
+        }
+
         createMemberVideos();
 
 
         // 添加举手按钮
-        Button button = (Button) findViewById("button");
-        button.setOnClickListener(new View.OnClickListener() {
+        handBtn = (Button) findViewById("button");
+        handBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onHandButtonClick();
+            }
+        });
+
+        // 添加关闭按钮
+        Button closeBtn = (Button) findViewById("closeBtn");
+        closeBtn.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                mainDialog.cancel();
+            }
+        });
+
+
+        HorizontalScrollView avRootScroll = (HorizontalScrollView) findViewById("av_root_scroll");
+
+        // 添加左划按钮
+        Button leftBtn = (Button) findViewById("leftBtn");
+        leftBtn.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                avRootScroll.arrowScroll(View.FOCUS_LEFT);
+            }
+        });
+
+        // 添加右划按钮
+        Button rightBtn = (Button) findViewById("rightBtn");
+        rightBtn.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                avRootScroll.arrowScroll(View.FOCUS_RIGHT);
             }
         });
 
@@ -280,6 +314,8 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
         videoView.initViews();
         videoView.render(userId, 1);
         videoView.setDeviceRotation(180);
+//        videoView.setBackground(getIdentifier("layout_bg", "drawable"));
+//        videoView.setClipToOutline(true);
 
 
         layout.addView(videoView);
@@ -420,9 +456,11 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
         if(message.equals("TIMCustomHandReplyYes")){
             sendC2CMessageToTeacher("TIMCustomHandRecOpenOk");
             setMic(true);
+            handBtn.setText("正在发言");
         } else if(message.equals("TIMCustomHandReplyNo")){
             sendC2CMessageToTeacher("TIMCustomHandRecCloseOk");
             setMic(false);
+            handBtn.setText("我要发言");
         }
     }
 
@@ -443,6 +481,9 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
 
     // 学生举手
     private void onHandButtonClick(){
+        if(!"我要发言".equals(handBtn.getText())) return;
+
+        handBtn.setText("等待老师同意...");
         sendC2CMessageToTeacher("TIMCustomHand");
     }
 

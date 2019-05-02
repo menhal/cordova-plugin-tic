@@ -19,22 +19,38 @@
         android:layout_weight="2"
         android:orientation="horizontal">
 
-
-      <com.tencent.boardsdk.board.WhiteboardView
-          android:id="@+id/whiteboardview"
-          android:layout_width="0dp"
-          android:layout_height="match_parent"
-          android:layout_margin="10dp"
-          android:layout_weight="6"
-          android:visibility="visible" />
-
-
       <LinearLayout
           android:layout_width="0dp"
           android:layout_height="match_parent"
-          android:layout_margin="10dp"
-          android:layout_weight="4"
-          android:background="#ffffff"
+
+          android:layout_marginLeft="20dp"
+          android:layout_marginTop="10dp"
+          android:layout_marginRight="10dp"
+          android:layout_marginBottom="10dp"
+          android:layout_weight="6"
+          android:background="@drawable/layout_bg"
+          android:gravity="center">
+
+        <com.tencent.boardsdk.board.WhiteboardView
+            android:id="@+id/whiteboardview"
+            android:layout_width="fill_parent"
+            android:layout_height="match_parent"
+            android:visibility="visible" />
+
+      </LinearLayout>
+
+
+      <LinearLayout
+          android:id="@+id/av_root_view_container"
+          android:layout_width="0dp"
+          android:layout_height="match_parent"
+          android:layout_marginLeft="10dp"
+          android:layout_marginTop="10dp"
+          android:layout_marginRight="20dp"
+          android:layout_marginBottom="10dp"
+          android:layout_weight="3"
+          android:background="@drawable/layout_bg"
+          android:gravity="end"
           android:orientation="vertical">
 
 
@@ -48,16 +64,21 @@
 
 
         <LinearLayout
-            android:gravity="center_horizontal"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1">
+            android:layout_weight="1"
+            android:gravity="center_horizontal">
 
           <Button
               android:id="@+id/button"
               android:layout_width="wrap_content"
               android:layout_height="wrap_content"
-              android:background="@drawable/hand" />
+              android:background="@drawable/hand"
+              android:text="我要发言"
+              android:paddingTop="5dp"
+              android:gravity="top|center"
+              android:textColor="#fff"
+              android:textSize="18sp" />
 
         </LinearLayout>
 
@@ -68,19 +89,59 @@
     </LinearLayout>
 
 
-    <LinearLayout
-        android:id="@+id/av_root_container"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:layout_margin="10dp"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:paddingBottom="10dp">
 
-    </LinearLayout>
+      <Button
+          android:id="@+id/leftBtn"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_gravity="center_vertical"
+          android:background="@drawable/left" />
+
+      <HorizontalScrollView
+          android:id="@+id/av_root_scroll"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"
+          android:layout_marginLeft="30dp"
+          android:layout_marginTop="0dp"
+          android:layout_marginRight="30dp"
+          android:layout_marginBottom="0dp"
+          android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/av_root_container"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+        </LinearLayout>
+
+      </HorizontalScrollView>
+
+
+      <Button
+          android:id="@+id/rightBtn"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_gravity="right|center_vertical"
+          android:background="@drawable/right" />
+    </FrameLayout>
 
   </LinearLayout>
 
 
+  <Button
+      android:id="@+id/closeBtn"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:background="@drawable/delete" />
 
 
 </FrameLayout>

@@ -68,6 +68,10 @@
         <source-file src="src/android/com/tencent/ticsdk/observer/UserStatusObservable.java" target-dir="src/com/tencent/ticsdk/observer" />
         <resource-file src="src/android/res/layout/tic_main.xml" target="res/layout/tic_main.xml" />
         <resource-file src="src/android/res/drawable-hdpi/hand.png" target="res/drawable-hdpi/hand.png" />
+        <resource-file src="src/android/res/drawable-hdpi/back.png" target="res/drawable-hdpi/back.png" />
+        <resource-file src="src/android/res/drawable-hdpi/left.png" target="res/drawable-hdpi/left.png" />
+        <resource-file src="src/android/res/drawable-hdpi/right.png" target="res/drawable-hdpi/right.png" />
+        <resource-file src="src/android/res/drawable-hdpi/layout_bg.xml" target="res/drawable-hdpi/layout_bg.xml" />
         <framework src="repositories.gradle" custom="true" type="gradleReference" />
 
     </platform>
