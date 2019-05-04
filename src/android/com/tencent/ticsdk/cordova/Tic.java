@@ -56,7 +56,6 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
     private Dialog mainDialog = null;
     private Button handBtn = null;
 
-    private int sdkappid = 1400204887;
     private int roomId = 0;
     private String teacherId = "";
     private String userId = "";
@@ -91,8 +90,6 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
     }
 
     private void init(final int sdkappid){
-        this.sdkappid = sdkappid;
-
         TICSDK.getInstance().initSDK(cordova.getActivity(), sdkappid);
         checkCameraAndMicPermission();
     }
