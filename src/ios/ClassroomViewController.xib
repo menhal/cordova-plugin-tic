@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="14490.70" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina4_7" orientation="landscape">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14490.49"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="ClassroomViewController">
+            <connections>
+                <outlet property="boardView" destination="RKM-ud-ZWP" id="6eQ-Sn-XLR"/>
+                <outlet property="boardViewContainer" destination="yWq-Am-poq" id="aa1-fP-OAw"/>
+                <outlet property="borderViewContainerHeight" destination="uy0-Qy-yLa" id="Bq2-id-bGd"/>
+                <outlet property="handButton" destination="g7C-1a-YuX" id="EQ4-k7-bnX"/>
+                <outlet property="liveListContainer" destination="rla-ri-hDM" id="7MM-m2-XKA"/>
+                <outlet property="mainRenderView" destination="IVA-wN-Y8V" id="47P-op-m5q"/>
+                <outlet property="view" destination="i5M-Pr-FkT" id="mWv-9V-DQ5"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view clearsContextBeforeDrawing="NO" contentMode="scaleToFill" id="i5M-Pr-FkT">
+            <rect key="frame" x="0.0" y="0.0" width="667" height="375"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <view clipsSubviews="YES" contentMode="scaleToFill" restorationIdentifier="BoardContainer" translatesAutoresizingMaskIntoConstraints="NO" id="yWq-Am-poq" userLabel="BoardContainer">
+                    <rect key="frame" x="10" y="10" width="437" height="200"/>
+                    <subviews>
+                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="RKM-ud-ZWP" customClass="TXBoardView">
+                            <rect key="frame" x="0.0" y="0.0" width="437" height="200"/>
+                            <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        </view>
+                    </subviews>
+                    <constraints>
+                        <constraint firstItem="RKM-ud-ZWP" firstAttribute="top" secondItem="yWq-Am-poq" secondAttribute="top" id="IvW-8c-ADU"/>
+                        <constraint firstItem="RKM-ud-ZWP" firstAttribute="height" secondItem="yWq-Am-poq" secondAttribute="height" id="NGI-Uk-wNh"/>
+                        <constraint firstItem="RKM-ud-ZWP" firstAttribute="leading" secondItem="yWq-Am-poq" secondAttribute="leading" id="hqs-yT-tCl"/>
+                        <constraint firstItem="RKM-ud-ZWP" firstAttribute="width" secondItem="yWq-Am-poq" secondAttribute="width" id="tju-VT-xXA"/>
+                        <constraint firstAttribute="height" constant="200" identifier="view1Height" id="uy0-Qy-yLa"/>
+                    </constraints>
+                    <userDefinedRuntimeAttributes>
+                        <userDefinedRuntimeAttribute type="string" keyPath="layer.cornerRadius" value="10"/>
+                    </userDefinedRuntimeAttributes>
+                </view>
+                <view clipsSubviews="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="QK8-cN-SMH" userLabel="MainRenderContainer">
+                    <rect key="frame" x="457" y="10" width="200" height="200"/>
+                    <subviews>
+                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="IVA-wN-Y8V" userLabel="MainRenderView" customClass="ILiveRenderView">
+                            <rect key="frame" x="0.0" y="0.0" width="200" height="131"/>
+                            <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        </view>
+                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="top" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="g7C-1a-YuX">
+                            <rect key="frame" x="10" y="141" width="180" height="49.000000000000014"/>
+                            <inset key="titleEdgeInsets" minX="0.0" minY="5" maxX="0.0" maxY="0.0"/>
+                            <state key="normal" title="我要发言" backgroundImage="HandButton"/>
+                            <connections>
+                                <action selector="onHandButtonClick:" destination="-1" eventType="touchUpInside" id="m6a-MF-iBu"/>
+                            </connections>
+                        </button>
+                    </subviews>
+                    <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                    <constraints>
+                        <constraint firstAttribute="width" constant="200" id="8Q6-dW-d15"/>
+                        <constraint firstItem="g7C-1a-YuX" firstAttribute="top" secondItem="IVA-wN-Y8V" secondAttribute="bottom" constant="10" id="ME4-TY-Lcc"/>
+                        <constraint firstAttribute="trailing" secondItem="g7C-1a-YuX" secondAttribute="trailing" constant="10" id="N4p-5t-ahO"/>
+                        <constraint firstItem="g7C-1a-YuX" firstAttribute="leading" secondItem="QK8-cN-SMH" secondAttribute="leading" constant="10" id="Opk-yj-TqD"/>
+                        <constraint firstItem="IVA-wN-Y8V" firstAttribute="leading" secondItem="QK8-cN-SMH" secondAttribute="leading" id="cxD-iM-pvF"/>
+                        <constraint firstAttribute="trailing" secondItem="IVA-wN-Y8V" secondAttribute="trailing" id="g1m-T3-s91"/>
+                        <constraint firstItem="IVA-wN-Y8V" firstAttribute="top" secondItem="QK8-cN-SMH" secondAttribute="top" id="pmG-1i-r1U"/>
+                        <constraint firstAttribute="bottom" secondItem="g7C-1a-YuX" secondAttribute="bottom" constant="10" id="yeb-6B-JaJ"/>
+                    </constraints>
+                    <userDefinedRuntimeAttributes>
+                        <userDefinedRuntimeAttribute type="string" keyPath="layer.cornerRadius" value="10"/>
+                    </userDefinedRuntimeAttributes>
+                </view>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="jJQ-Nf-swa" userLabel="BottomView">
+                    <rect key="frame" x="10" y="220" width="647" height="145"/>
+                    <subviews>
+                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="zSd-4L-eEA" userLabel="RightButton">
+                            <rect key="frame" x="607" y="0.0" width="40" height="145"/>
+                            <constraints>
+                                <constraint firstAttribute="width" constant="40" id="10g-EX-E33"/>
+                            </constraints>
+                            <state key="normal" image="RightButton">
+                                <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            </state>
+                            <connections>
+                                <action selector="onRightButtonClick:" destination="-1" eventType="touchUpInside" id="b1t-0S-Y47"/>
+                            </connections>
+                        </button>
+                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="T5J-zi-M0m" userLabel="LeftButton">
+                            <rect key="frame" x="0.0" y="0.0" width="40" height="145"/>
+                            <constraints>
+                                <constraint firstAttribute="width" constant="40" id="ae3-0I-K0N"/>
+                            </constraints>
+                            <state key="normal" image="LeftButton"/>
+                            <connections>
+                                <action selector="onLeftButtonClick:" destination="-1" eventType="touchUpInside" id="Dzc-wI-CVn"/>
+                            </connections>
+                        </button>
+                        <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="rla-ri-hDM" userLabel="LiveListContainer">
+                            <rect key="frame" x="40" y="0.0" width="567" height="145"/>
+                        </scrollView>
+                    </subviews>
+                    <constraints>
+                        <constraint firstItem="rla-ri-hDM" firstAttribute="trailing" secondItem="zSd-4L-eEA" secondAttribute="leading" id="08Q-XU-SSe"/>
+                        <constraint firstItem="zSd-4L-eEA" firstAttribute="top" secondItem="jJQ-Nf-swa" secondAttribute="top" id="3XK-01-wcp"/>
+                        <constraint firstAttribute="bottom" secondItem="rla-ri-hDM" secondAttribute="bottom" id="Dxm-qd-loX"/>
+                        <constraint firstItem="rla-ri-hDM" firstAttribute="top" secondItem="jJQ-Nf-swa" secondAttribute="top" id="KEh-nS-EPg"/>
+                        <constraint firstItem="T5J-zi-M0m" firstAttribute="leading" secondItem="jJQ-Nf-swa" secondAttribute="leading" id="KXe-34-dus"/>
+                        <constraint firstAttribute="bottom" secondItem="T5J-zi-M0m" secondAttribute="bottom" id="XIJ-Yb-ZED"/>
+                        <constraint firstAttribute="bottom" secondItem="zSd-4L-eEA" secondAttribute="bottom" id="XZ4-eU-sBe"/>
+                        <constraint firstItem="T5J-zi-M0m" firstAttribute="top" secondItem="jJQ-Nf-swa" secondAttribute="top" id="q0z-fH-BCa"/>
+                        <constraint firstAttribute="trailing" secondItem="zSd-4L-eEA" secondAttribute="trailing" id="qqs-7D-Xk9"/>
+                        <constraint firstItem="T5J-zi-M0m" firstAttribute="trailing" secondItem="rla-ri-hDM" secondAttribute="leading" id="xfn-nP-3GJ"/>
+                    </constraints>
+                </view>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="zRe-19-drY">
+                    <rect key="frame" x="0.0" y="0.0" width="44" height="44"/>
+                    <state key="normal" image="CloseButton">
+                        <color key="titleColor" red="0.1799892787" green="1" blue="0.20436847180000001" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                    </state>
+                    <connections>
+                        <action selector="onQuitRoom:" destination="-1" eventType="touchUpInside" id="sGy-Ym-LeZ"/>
+                    </connections>
+                </button>
+            </subviews>
+            <color key="backgroundColor" red="0.30980392156862746" green="0.74901960784313726" blue="1" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+            <constraints>
+                <constraint firstItem="zRe-19-drY" firstAttribute="top" secondItem="Q5M-cg-NOt" secondAttribute="top" id="2Ax-TN-RgA"/>
+                <constraint firstItem="Q5M-cg-NOt" firstAttribute="bottom" secondItem="jJQ-Nf-swa" secondAttribute="bottom" constant="10" id="6nx-e6-udu"/>
+                <constraint firstItem="QK8-cN-SMH" firstAttribute="leading" secondItem="yWq-Am-poq" secondAttribute="trailing" constant="10" id="8KA-VR-9sz"/>
+                <constraint firstItem="QK8-cN-SMH" firstAttribute="centerY" secondItem="yWq-Am-poq" secondAttribute="centerY" id="IW6-PU-eX6"/>
+                <constraint firstItem="zRe-19-drY" firstAttribute="leading" secondItem="Q5M-cg-NOt" secondAttribute="leading" id="U6I-lQ-PD2"/>
+                <constraint firstItem="QK8-cN-SMH" firstAttribute="height" secondItem="yWq-Am-poq" secondAttribute="height" id="XN2-cI-ZUp"/>
+                <constraint firstAttribute="trailing" secondItem="QK8-cN-SMH" secondAttribute="trailing" constant="10" id="ZGB-0t-HLv"/>
+                <constraint firstItem="jJQ-Nf-swa" firstAttribute="top" secondItem="yWq-Am-poq" secondAttribute="bottom" constant="10" id="cgx-MZ-DCS"/>
+                <constraint firstAttribute="trailing" secondItem="jJQ-Nf-swa" secondAttribute="trailing" constant="10" id="nFV-nr-579"/>
+                <constraint firstItem="jJQ-Nf-swa" firstAttribute="leading" secondItem="Q5M-cg-NOt" secondAttribute="leading" constant="10" id="q1n-lb-bml"/>
+                <constraint firstItem="yWq-Am-poq" firstAttribute="top" secondItem="Q5M-cg-NOt" secondAttribute="top" constant="10" id="uSa-57-kah"/>
+                <constraint firstItem="yWq-Am-poq" firstAttribute="leading" secondItem="Q5M-cg-NOt" secondAttribute="leading" constant="10" id="vUw-LO-68i"/>
+            </constraints>
+            <viewLayoutGuide key="safeArea" id="Q5M-cg-NOt"/>
+            <point key="canvasLocation" x="32.833583208395808" y="34.399999999999999"/>
+        </view>
+    </objects>
+    <resources>
+        <image name="CloseButton" width="44" height="44"/>
+        <image name="HandButton" width="52.5" height="49"/>
+        <image name="LeftButton" width="13.5" height="33.5"/>
+        <image name="RightButton" width="13.5" height="33.5"/>
+    </resources>
+</document>

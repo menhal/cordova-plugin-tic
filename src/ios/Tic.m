@@ -3,15 +3,14 @@
 #import <Cordova/CDVPlugin.h>
 #import <TICSDK/TICSDK.h>
 #import "ClassroomViewController.h"
-
+#import "ClassroomViewController.h"
 
 @implementation Tic
-
 
 - (void) init:(CDVInvokedUrlCommand*)command
 {
     NSLog(@"初始化插件");
-     NSString *sdkappid = [command.arguments objectAtIndex:0];
+    NSString *sdkappid = [command.arguments objectAtIndex:0];
     [[TICManager sharedInstance] initSDK: sdkappid];
 }
 
@@ -68,6 +67,8 @@
         [rootViewController addChildViewController:classroomVC];
         [rootView addSubview:classroomVC.view];
         
+//        [rootViewController presentViewController:classroomVC animated:YES completion:nil];
+        
         
         [self showSuccessMessage];
         NSLog(@"进入房间成功");
@@ -104,6 +105,12 @@
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary: message];
     [pluginResult setKeepCallbackAsBool:true];
     [self.commandDelegate sendPluginResult:pluginResult callbackId: callbackId];
+}
+
+
+- (void) pluginInitialize{
+    NSLog(@"初始化插件");
+//    [[TICManager sharedInstance] initSDK: @"1400204887"];
 }
 
 - (void) onReset{

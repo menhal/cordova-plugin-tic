@@ -9,6 +9,7 @@
   },
   "author": "Menghao <menhal@qq.com>",
   "dependencies": {
-    "glob": "^7.1.3"
+    "glob": "^7.1.3",
+    "ncp" : "^2.0.0"
   }
 }

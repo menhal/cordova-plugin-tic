@@ -2,12 +2,11 @@
 <plugin xmlns="http://www.phonegap.com/ns/plugins/1.0"
         xmlns:android="http://schemas.android.com/apk/res/android"
         id="cordova-plugin-tic"
-        version="1.0.0">
+        version="1.0.1">
 
     <name>cordova-plugin-tic</name>
     <description>Cordova/Phonegap plugin to play tic</description>
     <author>Menghao</author>
-
 
 	<js-module src="www/tic.js" name="tic">
         <clobbers target="Tic" />
@@ -15,6 +14,9 @@
     
  
     <platform name="ios">
+        <hook type="before_plugin_install" src="hooks/before_plugin_install.js" />
+        <hook type="before_plugin_uninstall" src="hooks/before_plugin_uninstall.js" />
+
         <config-file target="config.xml" parent="/*">
             <feature name="Tic">
                 <param name="ios-package" value="Tic"/>
@@ -37,9 +39,18 @@
 
         <header-file src="src/ios/ClassroomViewController.h" />
         <source-file src="src/ios/ClassroomViewController.m" />
+
+        <source-file src="src/ios/ClassroomViewController.xib" target-dir=""/>
+
+
+        <xcassets>
+            <source-file src="src/ios/Images.xcassets/HandButton.imageset" />
+            <source-file src="src/ios/Images.xcassets/CloseButton.imageset/back.png" />
+            <source-file src="src/ios/Images.xcassets/LeftButton.imageset/left.png" />
+            <source-file src="src/ios/Images.xcassets/RightButton.imageset/right.png" />
+        </xcassets>        
     </platform>
 
-  
    
     <platform name="android">
     

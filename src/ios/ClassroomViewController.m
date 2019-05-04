@@ -25,21 +25,29 @@
     NSString *_teacherId;
     CDVPlugin *_plugin;
 }
-@property (nonatomic, strong) TXBoardView *boardView;     //!< 白板
-@property (nonatomic, strong) UITextView *chatView;       //!< 聊天视图
-@property (nonatomic, strong) ILiveRenderView *mainRenderView;       //!< 教师视频
+@property (weak, nonatomic) IBOutlet UIView *boardViewContainer;
+
+@property (weak, nonatomic) IBOutlet NSLayoutConstraint *borderViewContainerHeight;
+
+@property (weak, nonatomic) IBOutlet TXBoardView *boardView;
+
+@property (weak, nonatomic) IBOutlet ILiveRenderView *mainRenderView;//!< 教师视频
+
+@property (weak, nonatomic) IBOutlet UIButton *handButton;  // 举手按钮
+
+@property (weak, nonatomic) IBOutlet UIScrollView *liveListContainer;
+
 @property (nonatomic, strong) NSMutableArray *allStudentsRenderViews; //所有学生视频
-@property (nonatomic, strong) UIButton *handButton; // 举手按钮
 
 @end
 
 @implementation ClassroomViewController
 
-
-- (BOOL)shouldAutorotate
-{
-    return NO;
-}
+//
+//- (BOOL)shouldAutorotate
+//{
+//    return NO;
+//}
 
 - (instancetype)initWithClasssID:(NSString *)classId teacherId: (NSString *) teacherId plugin: (CDVPlugin *)plugin
 {
@@ -58,25 +66,19 @@
     [super viewDidLoad];
     
     // 强制横屏
-//    [[UIDevice currentDevice] setValue:[NSNumber numberWithInteger: UIDeviceOrientationLandscapeLeft]
-//                                forKey:@"orientation"];
-    
-//    [[UIDevice currentDevice] setValue:3 forKey:@"orientation"];
     [self changeToOrientation: UIDeviceOrientationLandscapeLeft];
-    
-    
-    self.view.autoresizesSubviews = YES;
-    self.view.autoresizingMask = UIViewAutoresizingFlexibleRightMargin;
-    
     [self.view setFrame:CGRectMake(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)];
+    _borderViewContainerHeight.constant = SCREEN_HEIGHT * 6 / 10;
     
     // UI设置
-    self.view.backgroundColor = [UIColor colorWithRed:79/255.0 green:191/255.0 blue:255/255.0 alpha:1.0];
-    [self.view addSubview:self.boardView];
-    [self.view addSubview:self.mainRenderView];
+    [self initMainRenderView];
+    [self initBoardView];
     
-    [self.boardView.layer setCornerRadius:20.0f];
+//    [_boardViewContainer.layer setCornerRadius:20.0f];
+//    [self.boardView.layer setCornerRadius:20.0f];
     //    [self.view addSubview:self.chatView];
+    
+    
     
     
     // 调用TIC接口，添加白板视图，建立TICManager和白板视图的联系
@@ -93,20 +95,6 @@
     
     // 关闭mic
     [self setMic:false];
-    
-    
-    // 添加按钮
-    UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
-    [button addTarget:self action:@selector(onQuitRoom) forControlEvents:UIControlEventTouchUpInside];
-    [button setTitle:@"退出" forState:UIControlStateNormal];
-    [button setTitleColor:UIColor.blueColor forState:UIControlStateNormal];
-    button.frame = CGRectMake(10.0, 10.0, 50.0, 30.0);
-//    button.backgroundColor = UIColor.whiteColor;
-    [self.view addSubview:button];
-    [self.view bringSubviewToFront:button];
-
-    // 添加举手按钮
-    [self.view addSubview: self.handButton];
 }
 
 -(void)dealloc {
@@ -129,11 +117,43 @@
 
 #pragma mark - Custom Action
 // 退出教室
-- (void)onQuitRoom {
+- (void)quitRoom {
     // 因为dealloc方法中已经写了退出课堂逻辑，所以这里只需要pop掉控制器，触发dealloc方法即可
 //    [self.navigationController popViewControllerAnimated:YES];
     [self removeFromParentViewController];
     [self.view removeFromSuperview];
+}
+
+- (IBAction)onQuitRoom:(id)sender {
+    [self quitRoom];
+}
+
+// 左滑按钮
+- (IBAction)onLeftButtonClick:(id)sender {
+    [self scrollTo: 1];
+}
+
+// 右滑按钮
+- (IBAction)onRightButtonClick:(id)sender {
+    [self scrollTo: -1];
+}
+
+// 滑动到
+- (void) scrollTo: (int) direction{
+    CGFloat scrollWidth = [self getLiveViewWidth] + 10;
+    
+    float scrollViewWidth = _liveListContainer.frame.size.width;
+    float scrollContentWidth = _liveListContainer.contentSize.width;
+    float scrollOffset = _liveListContainer.contentOffset.x;
+    
+    if(_liveListContainer.contentOffset.x == 0 && direction == -1) return;
+    if(scrollOffset + scrollViewWidth >= scrollContentWidth && direction == 1) return;
+    
+    [UIView animateWithDuration:0.2 animations:^{
+        CGPoint offset = _liveListContainer.contentOffset;
+        offset.x += direction * scrollWidth;
+        _liveListContainer.contentOffset = offset;
+    }];
 }
 
 // 设置mic
@@ -158,17 +178,26 @@
     }
     
     // 计算并设置每一个渲染视图的frame
-    CGFloat renderViewHeight = sVideoH;
-    CGFloat renderViewWidth = sVideoW;
-    CGFloat renderViewY = kBoardH + 30;
-    __block CGFloat renderViewX = 40;
+    CGFloat renderViewHeight = _liveListContainer.bounds.size.height;
+    CGFloat renderViewWidth = [self getLiveViewWidth];
+    __block CGFloat renderViewX = 0;
     
     [_allStudentsRenderViews enumerateObjectsUsingBlock:^(ILiveRenderView *renderView, NSUInteger idx, BOOL * _Nonnull stop) {
         renderViewX = renderViewX + (renderViewWidth + 10) * idx;
-        CGRect frame = CGRectMake(renderViewX, renderViewY, renderViewWidth, renderViewHeight);
+        CGRect frame = CGRectMake(renderViewX, 0, renderViewWidth, renderViewHeight);
         renderView.frame = frame;
         [renderView.layer setCornerRadius:10.0f];
+        [renderView clipsToBounds];
     }];
+    
+    CGFloat contentWidth = allRenderViews.count * (renderViewWidth + 10);
+    _liveListContainer.contentSize = CGSizeMake(contentWidth, 0);
+}
+
+
+- (CGFloat) getLiveViewWidth {
+    CGFloat renderViewHeight = _liveListContainer.bounds.size.height;
+    return renderViewHeight ;
 }
 
 
@@ -199,18 +228,25 @@
     if([message isEqualToString:@"TIMCustomHandReplyYes"]){
         [self setMic:true];
         [self sendC2CMessageToTeacher:@"TIMCustomHandRecOpenOk"];
+        [_handButton setTitle:@"正在发言" forState:UIControlStateNormal];
     } else if([message isEqualToString:@"TIMCustomHandReplyNo"]){
         [self setMic:false];
-        [self sendC2CMessageToTeacher:@"TIMCustomHandRecCloseOk"];
+        [self sendC2CMessageToTeacher:@"IMCustomHandRecCloseOk"];
+        [_handButton setTitle:@"我要发言" forState:UIControlStateNormal];
     }
 }
 
 // 发送消息给老师
 -(void) sendC2CMessageToTeacher: (NSString *) message{
+    if(![_handButton.titleLabel.text isEqualToString: @"我要发言"]) return;
+    
+    [_handButton setTitle:@"等待老师同意..." forState:UIControlStateNormal];
+    
     [[TICManager sharedInstance] sendTextMessage:message toUser:_teacherId succ:^{
         NSLog(@"消息发送成功");
     } failed:^(NSString *module, int errId, NSString *errMsg) {
         NSLog(@"消息发送失败: %@", errMsg);
+        [_handButton setTitle:@"我要发言" forState:UIControlStateNormal];
     }];
 }
 
@@ -293,7 +329,7 @@
 - (void) addRenderView: (ILiveRenderView *)renderView
 {
     [_allStudentsRenderViews addObject:renderView];
-    [self.view addSubview:renderView];
+    [_liveListContainer addSubview:renderView];
     [self onCameraNumChange];
 }
 
@@ -325,8 +361,8 @@
  *  @param members 加入成员的identifier（NSString*）列表
  */
 -(void)onMemberJoin:(NSArray*)members {
-    NSString *msgInfo = [NSString stringWithFormat:@"[%@] %@",members.firstObject, @"加入了房间"];
-    self.chatView.text = [NSString stringWithFormat:@"%@\n%@",self.chatView.text, msgInfo];;
+//    NSString *msgInfo = [NSString stringWithFormat:@"[%@] %@",members.firstObject, @"加入了房间"];
+//    self.chatView.text = [NSString stringWithFormat:@"%@\n%@",self.chatView.text, msgInfo];;
 }
 
 /**
@@ -335,12 +371,12 @@
  *  @param members 退出成员的identifier（NSString*）列表
  */
 -(void)onMemberQuit:(NSArray*)members {
-    NSString *msgInfo = [NSString stringWithFormat:@"[%@] %@",members.firstObject, @"退出了房间"];
-    self.chatView.text = [NSString stringWithFormat:@"%@\n%@",self.chatView.text, msgInfo];;
+//    NSString *msgInfo = [NSString stringWithFormat:@"[%@] %@",members.firstObject, @"退出了房间"];
+//    self.chatView.text = [NSString stringWithFormat:@"%@\n%@",self.chatView.text, msgInfo];;
 }
 
 // 点击举手按钮
--(void) onHandButtonClick{
+- (IBAction)onHandButtonClick:(id)sender {
     [self sendC2CMessageToTeacher:@"TIMCustomHand"];
 }
 
@@ -348,67 +384,24 @@
  *  课堂被解散通知
  */
 -(void)onClassroomDestroy {
-    [self onQuitRoom];
+    [self quitRoom];
 }
 
 #pragma mark - Accessor
 
-- (TXBoardView *)boardView {
-    if (!_boardView) {
-        _boardView = [[TXBoardView alloc] initWithRoomID:_classID];
-        _boardView.frame = CGRectMake(40, 14, kBoardW, kBoardH);
-        [_boardView setBrushModel:TXBoardBrushModelNone]; // 禁止学生端画画
-    }
-    return _boardView;
+- (void)initBoardView {
+    [_boardView initWithRoomID:_classID];
+    [_boardView setBrushModel:TXBoardBrushModelNone]; // 禁止学生端画画
 }
 
-- (UITextView *)chatView {
-    if (!_chatView) {
-        _chatView = [[UITextView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(self.boardView.frame), SCREEN_WIDTH*0.4, SCREEN_HEIGHT-CGRectGetMaxY(self.boardView.frame)-50)];
-        _chatView.backgroundColor = [UIColor lightGrayColor];
-        _chatView.editable = NO;
-    }
-    return _chatView;
-}
-
-- (ILiveRenderView *) mainRenderView{
-    if (!_mainRenderView) {
-        
-        ILiveFrameDispatcher *frameDispatcher = [[ILiveRoomManager getInstance] getFrameDispatcher];
-        ILiveRenderView *renderView = [frameDispatcher addRenderAt:CGRectZero forIdentifier:_teacherId srcType:QAVVIDEO_SRC_TYPE_CAMERA];
-        renderView.autoRotate = NO;
-//        [self.view addSubview:renderView];
-        
-        CGFloat renderViewHeight = kVideoH;
-        CGFloat renderViewWidth = kVideoW;
-        CGFloat renderViewY = 14;
-        __block CGFloat renderViewX = 40 + kBoardW + 20;
-        
-        CGRect frame = CGRectMake(renderViewX, renderViewY, renderViewWidth, renderViewHeight);
-        renderView.frame = frame;
-        [renderView.layer setCornerRadius:10.0f];
-        [renderView setClipsToBounds:YES];
-        
-        _mainRenderView = renderView;
-    }
-    return _mainRenderView;
-}
-
-// 举手按钮
-- (UIButton *) handButton{
-    if(!_handButton){
-        UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
-        [button addTarget:self action:@selector(onHandButtonClick) forControlEvents:UIControlEventTouchUpInside];
-        [button setTitle:@"举手" forState:UIControlStateNormal];
-        [button setTitleColor:UIColor.blueColor forState:UIControlStateNormal];
-        button.frame = CGRectMake(40 + kBoardW + 20, 14 + kVideoH, kVideoW, 30.0);
-        
-        _handButton = button;
-    }
+- (void) initMainRenderView{
+    [_mainRenderView setIdentifier:_teacherId];
+    [_mainRenderView setSrcType:QAVVIDEO_SRC_TYPE_CAMERA];
+    _mainRenderView.autoRotate = NO;
     
-    return _handButton;
+    ILiveFrameDispatcher *frameDispatcher = [[ILiveRoomManager getInstance] getFrameDispatcher];
+    [frameDispatcher addRenderView:_mainRenderView];
 }
-
 
 - (void) changeToOrientation: (int) orientation
 {
