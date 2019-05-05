@@ -231,7 +231,7 @@
         [_handButton setTitle:@"正在发言" forState:UIControlStateNormal];
     } else if([message isEqualToString:@"TIMCustomHandReplyNo"]){
         [self setMic:false];
-        [self sendC2CMessageToTeacher:@"IMCustomHandRecCloseOk"];
+        [self sendC2CMessageToTeacher:@"TIMCustomHandRecCloseOk"];
         [_handButton setTitle:@"我要发言" forState:UIControlStateNormal];
     }
 }
