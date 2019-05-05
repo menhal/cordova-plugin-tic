@@ -258,7 +258,7 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
         });
 
 
-        HorizontalScrollView avRootScroll = (HorizontalScrollView) findViewById("av_root_scroll");
+        final HorizontalScrollView avRootScroll = (HorizontalScrollView) findViewById("av_root_scroll");
 
         // 添加左划按钮
         Button leftBtn = (Button) findViewById("leftBtn");
