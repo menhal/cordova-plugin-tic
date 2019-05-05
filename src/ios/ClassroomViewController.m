@@ -238,15 +238,11 @@
 
 // 发送消息给老师
 -(void) sendC2CMessageToTeacher: (NSString *) message{
-    if(![_handButton.titleLabel.text isEqualToString: @"我要发言"]) return;
-    
-    [_handButton setTitle:@"等待老师同意..." forState:UIControlStateNormal];
-    
+   
     [[TICManager sharedInstance] sendTextMessage:message toUser:_teacherId succ:^{
         NSLog(@"消息发送成功");
     } failed:^(NSString *module, int errId, NSString *errMsg) {
         NSLog(@"消息发送失败: %@", errMsg);
-        [_handButton setTitle:@"我要发言" forState:UIControlStateNormal];
     }];
 }
 
@@ -377,6 +373,10 @@
 
 // 点击举手按钮
 - (IBAction)onHandButtonClick:(id)sender {
+    if(![_handButton.titleLabel.text isEqualToString: @"我要发言"]) return;
+    
+    [_handButton setTitle:@"等待老师同意..." forState:UIControlStateNormal];
+    
     [self sendC2CMessageToTeacher:@"TIMCustomHand"];
 }
 
