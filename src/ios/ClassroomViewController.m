@@ -95,11 +95,15 @@
     // 关闭mic
     [self setMic: NO];
     [self initLocalRenderView];
+    
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+        [self onCameraNumChange];
+    });
 }
 
 -(void)dealloc {
     // 强制竖屏
-    [self changeToOrientation: UIDeviceOrientationPortrait];
+    
 }
 
 #pragma mark - Target Action
@@ -112,21 +116,19 @@
     // 因为dealloc方法中已经写了退出课堂逻辑，所以这里只需要pop掉控制器，触发dealloc方法即可
 //    [self.navigationController popViewControllerAnimated:YES];
     [[NSNotificationCenter defaultCenter] removeObserver:self];
-    // 退出课堂
     [[TICManager sharedInstance] removeEventListener:self];
     [[TICManager sharedInstance] removeMessageListener:self];
     
     [[TICManager sharedInstance] quitClassroom:^(TICModule module, int code, NSString *desc) {
         if(code == 0){
             //退出课堂成功
-            NSLog(@"退出房间成功");
         }
         else{
             //退出课堂失败
-            NSLog(@"退出房间失败：%d-%@", code, desc);
         }
     }];
     
+    [self changeToOrientation: UIDeviceOrientationPortrait];
     [self removeFromParentViewController];
     [self.view removeFromSuperview];
 }
@@ -168,9 +170,9 @@
 
     // 关闭mic
     if(isEnable){
-        [[[TICManager sharedInstance] getTRTCClound] startLocalAudio];
+        [[TRTCCloud sharedInstance] startLocalAudio];
     } else {
-        [[[TICManager sharedInstance] getTRTCClound] stopLocalAudio];
+        [[TRTCCloud sharedInstance] stopLocalAudio];
     }
 }
 
@@ -269,12 +271,12 @@
         render.streamType = TICStreamType_Main;
         [self.view addSubview:render];
        
-        [[[TICManager sharedInstance] getTRTCClound] startRemoteView:userId view:render];
+        [[TRTCCloud sharedInstance] startRemoteView:userId view:render];
         [self addRenderView:render];
     }
     else{
         TICRenderView *render = [self getRenderView:userId streamType:TICStreamType_Main];
-        [[[TICManager sharedInstance] getTRTCClound] stopRemoteView:userId];
+        [[TRTCCloud sharedInstance] stopRemoteView:userId];
         [self removeRenderView:render];
     }
 }
@@ -304,7 +306,7 @@
         TICRenderView *render = [[TICRenderView alloc] init];
         render.userId = userId;
         render.streamType = TICStreamType_Main;
-        [[[TICManager sharedInstance] getTRTCClound] startRemoteView:userId view:render];
+        [[TRTCCloud sharedInstance] startRemoteView:userId view:render];
         
         [self addRenderView:render];
     }
@@ -391,7 +393,7 @@
 - (void) initMainRenderView{
     _mainRenderView.userId = _teacherId;
     _mainRenderView.streamType = TICStreamType_Main;
-    [[[TICManager sharedInstance] getTRTCClound] startRemoteView:_teacherId view:_mainRenderView];
+    [[TRTCCloud sharedInstance] startRemoteView:_teacherId view:_mainRenderView];
 }
     
 - (void) initLocalRenderView{
@@ -400,7 +402,7 @@
     render.streamType = TICStreamType_Main;
     [self.view addSubview:render];
     
-    [[[TICManager sharedInstance] getTRTCClound] startLocalPreview:YES view:render];
+    [[TRTCCloud sharedInstance] startLocalPreview:YES view:render];
     
     [self addRenderView:render];
 }
