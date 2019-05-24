@@ -296,10 +296,10 @@ public class Tic extends CordovaPlugin implements IClassEventListener, IClassroo
         ContextEngine contextEngine = ILiveSDK.getInstance().getContextEngine();
         List<String> userList = contextEngine.getVideoUserList(CommonConstants.Const_VideoType_Camera);
 
-        for (String uid : userList) {
-            if(uid.equals(teacherId)) continue;
-            if(uid.equals(userId)) continue;
-            renderUserVideo(uid);
+        for (String userId : userList) {
+            if(userId.equals(teacherId)) continue;
+            if(userId.equals(userId)) continue;
+            renderUserVideo(userId);
         }
     }
 

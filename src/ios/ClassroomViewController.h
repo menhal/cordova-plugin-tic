@@ -7,17 +7,16 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "TICManager.h"
-#import "TICRenderView.h"
+#import <TICSDK/TICSDK.h>
 #import <Cordova/CDVPlugin.h>
 #import <Cordova/CDV.h>
 
 /**
  课堂页面
  */
-@interface ClassroomViewController : UIViewController <TICEventListener, TICMessageListener>
+@interface ClassroomViewController : UIViewController <TICClassroomEventListener, TICClassroomIMListener>
 
 // 初始化方法
-- (instancetype)initWithClasssID:(NSString *)classId teacherId: (NSString *) teacherId userId: (NSString *) userId plugin: (CDVPlugin *)plugin;
+- (instancetype)initWithClasssID:(NSString *)classId teacherId: (NSString *) teacherId plugin: (CDVPlugin *)plugin;
 
 @end

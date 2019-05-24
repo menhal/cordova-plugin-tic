@@ -17,9 +17,7 @@
                 <outlet property="borderViewContainerHeight" destination="uy0-Qy-yLa" id="Bq2-id-bGd"/>
                 <outlet property="handButton" destination="g7C-1a-YuX" id="EQ4-k7-bnX"/>
                 <outlet property="liveListContainer" destination="rla-ri-hDM" id="7MM-m2-XKA"/>
-                <outlet property="mainRenderContainer" destination="QK8-cN-SMH" id="oSO-tZ-fBk"/>
                 <outlet property="mainRenderView" destination="IVA-wN-Y8V" id="47P-op-m5q"/>
-                <outlet property="mainRenderViewContainerWidth" destination="8Q6-dW-d15" id="VI4-bw-dJR"/>
                 <outlet property="view" destination="i5M-Pr-FkT" id="mWv-9V-DQ5"/>
             </connections>
         </placeholder>
@@ -31,7 +29,7 @@
                 <view clipsSubviews="YES" contentMode="scaleToFill" restorationIdentifier="BoardContainer" translatesAutoresizingMaskIntoConstraints="NO" id="yWq-Am-poq" userLabel="BoardContainer">
                     <rect key="frame" x="10" y="10" width="437" height="200"/>
                     <subviews>
-                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="RKM-ud-ZWP">
+                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="RKM-ud-ZWP" customClass="TXBoardView">
                             <rect key="frame" x="0.0" y="0.0" width="437" height="200"/>
                             <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         </view>
@@ -50,7 +48,7 @@
                 <view clipsSubviews="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="QK8-cN-SMH" userLabel="MainRenderContainer">
                     <rect key="frame" x="457" y="10" width="200" height="200"/>
                     <subviews>
-                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="IVA-wN-Y8V" userLabel="MainRenderView" customClass="TICRenderView">
+                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="IVA-wN-Y8V" userLabel="MainRenderView" customClass="ILiveRenderView">
                             <rect key="frame" x="0.0" y="0.0" width="200" height="131"/>
                             <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         </view>

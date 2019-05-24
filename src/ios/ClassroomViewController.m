@@ -18,26 +18,20 @@
 #define sVideoH SCREEN_HEIGHT * 0.3 // 小屏幕视频宽度
 
 #import "ClassroomViewController.h"
-#import "TICRenderView.h"
 #import <objc/message.h>
 
 @interface ClassroomViewController () <UITextFieldDelegate> {
     NSString *_classID;
-    NSString *_userId;
     NSString *_teacherId;
     CDVPlugin *_plugin;
 }
 @property (weak, nonatomic) IBOutlet UIView *boardViewContainer;
 
-@property (weak, nonatomic) IBOutlet UIView *mainRenderContainer;
-
 @property (weak, nonatomic) IBOutlet NSLayoutConstraint *borderViewContainerHeight;
-@property (weak, nonatomic) IBOutlet NSLayoutConstraint *mainRenderViewContainerWidth;
 
+@property (weak, nonatomic) IBOutlet TXBoardView *boardView;
 
-@property (weak, nonatomic) IBOutlet UIView *boardView;
-
-@property (weak, nonatomic) IBOutlet TICRenderView *mainRenderView;//!< 教师视频
+@property (weak, nonatomic) IBOutlet ILiveRenderView *mainRenderView;//!< 教师视频
 
 @property (weak, nonatomic) IBOutlet UIButton *handButton;  // 举手按钮
 
@@ -55,7 +49,7 @@
 //    return NO;
 //}
 
-- (instancetype)initWithClasssID:(NSString *)classId teacherId: (NSString *) teacherId userId:(NSString *) userId plugin: (CDVPlugin *)plugin
+- (instancetype)initWithClasssID:(NSString *)classId teacherId: (NSString *) teacherId plugin: (CDVPlugin *)plugin
 {
     self = [super init];
     if (self) {
@@ -63,7 +57,6 @@
         _teacherId = teacherId;
         _allStudentsRenderViews = [[NSMutableArray alloc] init];
         _plugin = plugin;
-        _userId = userId;
     }
     
     return self;
@@ -75,35 +68,47 @@
     // 强制横屏
     [self changeToOrientation: UIDeviceOrientationLandscapeLeft];
     [self.view setFrame:CGRectMake(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)];
-
-    // ipad和手机区别对待
-    if(SCREEN_HEIGHT > 400){
-        _borderViewContainerHeight.constant = SCREEN_HEIGHT * 2 / 3;
-        _mainRenderViewContainerWidth.constant = SCREEN_WIDTH * 1 / 3;
-    } else {
-        _borderViewContainerHeight.constant = SCREEN_HEIGHT * 6 / 10;
-        _mainRenderViewContainerWidth.constant = SCREEN_WIDTH * 1 / 3;
-    }
+    _borderViewContainerHeight.constant = SCREEN_HEIGHT * 6 / 10;
     
-
-    [self.view layoutIfNeeded];
-
     // UI设置
     [self initMainRenderView];
     [self initBoardView];
     
-    // 关闭mic
-    [self setMic: NO];
-    [self initLocalRenderView];
+//    [_boardViewContainer.layer setCornerRadius:20.0f];
+//    [self.boardView.layer setCornerRadius:20.0f];
+    //    [self.view addSubview:self.chatView];
     
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
-        [self onCameraNumChange];
-    });
+    
+    
+    
+    // 调用TIC接口，添加白板视图，建立TICManager和白板视图的联系
+    [[TICManager sharedInstance] addBoardView:self.boardView andLoadHistoryData:^(int errCode, NSString *errMsg) {
+        NSLog(@"加载课堂历史数据完成");
+    }];
+    
+    // 打开摄像头
+    [[TICManager sharedInstance] enableCamera:CameraPosFront enable:true succ:^{
+        NSLog(@"启动摄像头成功");
+    } failed:^(NSString *module, int errId, NSString *errMsg) {
+        NSLog(@"启动摄像头失败");
+    }];
+    
+    // 关闭mic
+    [self setMic:false];
 }
 
 -(void)dealloc {
-    // 强制竖屏
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
     
+    // 强制竖屏
+    [self changeToOrientation: UIDeviceOrientationPortrait];
+    
+    // 退出课堂
+    [[TICManager sharedInstance] quitClassroomSucc:^{
+         NSLog(@"退出房间成功");
+    } failed:^(NSString *module, int errId, NSString *errMsg) {
+        NSLog(@"退出房间失败：%d-%@", errId, errMsg);
+    }];
 }
 
 #pragma mark - Target Action
@@ -115,20 +120,6 @@
 - (void)quitRoom {
     // 因为dealloc方法中已经写了退出课堂逻辑，所以这里只需要pop掉控制器，触发dealloc方法即可
 //    [self.navigationController popViewControllerAnimated:YES];
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
-    [[TICManager sharedInstance] removeEventListener:self];
-    [[TICManager sharedInstance] removeMessageListener:self];
-    
-    [[TICManager sharedInstance] quitClassroom:^(TICModule module, int code, NSString *desc) {
-        if(code == 0){
-            //退出课堂成功
-        }
-        else{
-            //退出课堂失败
-        }
-    }];
-    
-    [self changeToOrientation: UIDeviceOrientationPortrait];
     [self removeFromParentViewController];
     [self.view removeFromSuperview];
 }
@@ -167,18 +158,18 @@
 
 // 设置mic
 - (void) setMic: (BOOL) isEnable{
-
     // 关闭mic
-    if(isEnable){
-        [[TRTCCloud sharedInstance] startLocalAudio];
-    } else {
-        [[TRTCCloud sharedInstance] stopLocalAudio];
-    }
+    [[TICManager sharedInstance] enableMic:isEnable succ:^{
+        NSLog(@"设置mic成功");
+    } failed:^(NSString *module, int errId, NSString *errMsg) {
+        NSLog(@"设置mic失败");
+    }];
 }
 
 // 房间内上麦用户数量变化时调用，重新布局所有渲染视图，这里简单处理，从左到右等分布局，开发者可以根据自己业务自定义布局
 - (void)onCameraNumChange {
     // 获取当前所有渲染视图
+//    NSArray *allRenderViews = [[[ILiveRoomManager getInstance] getFrameDispatcher] getAllRenderViews];
     NSArray *allRenderViews = _allStudentsRenderViews;
     
     // 检测异常情况
@@ -188,16 +179,15 @@
     
     // 计算并设置每一个渲染视图的frame
     CGFloat renderViewHeight = _liveListContainer.bounds.size.height;
-    CGFloat renderViewWidth = renderViewHeight;
+    CGFloat renderViewWidth = [self getLiveViewWidth];
     __block CGFloat renderViewX = 0;
     
-    [_allStudentsRenderViews enumerateObjectsUsingBlock:^(TICRenderView *renderView, NSUInteger idx, BOOL * _Nonnull stop) {
-        renderViewX = renderViewX + (renderViewWidth + 10) * idx;
-        renderView.frame = CGRectMake(0, 0, renderViewHeight, renderViewWidth);
-//        renderView.superview.backgroundColor = UIColor.blackColor;
-        renderView.superview.frame = CGRectMake(renderViewX, 0, renderViewHeight , renderViewWidth);
-        
-        NSLog(@"renderViewHeight: %f, renderViewWidth:%f", renderViewHeight, renderViewWidth);
+    [_allStudentsRenderViews enumerateObjectsUsingBlock:^(ILiveRenderView *renderView, NSUInteger idx, BOOL * _Nonnull stop) {
+        if(idx != 0) renderViewX = renderViewX + (renderViewWidth + 10);
+        CGRect frame = CGRectMake(renderViewX, 0, renderViewWidth, renderViewHeight);
+        renderView.frame = frame;
+        [renderView.layer setCornerRadius:10.0f];
+        [renderView clipsToBounds];
     }];
     
     CGFloat contentWidth = allRenderViews.count * (renderViewWidth + 10);
@@ -214,20 +204,22 @@
 #pragma mark - TICClassroomIMListener
 
 // 收到文本消息
-- (void)onTICRecvTextMessage:(NSString *)text fromUserId:(NSString *)fromUserId
-{
-    if([fromUserId isEqualToString:_teacherId]){
+- (void)onRecvTextMsg:(NSString *)text from:(NSString *)fromId type:(TICMessageType)type {
+    // 接收到房间内其他成员发出的文本消息，将消息按"[发送者] 消息内容"格式展示在界面上
+    if([fromId isEqualToString:_teacherId]){
         [self onTeacherC2CMessage:text];
     }
 }
 
 // 收到自定义消息
-- (void)onTICRecvCustomMessage:(NSData *)data fromUserId:(NSString *)fromUserId
-{
+- (void)onRecvCustomMsg:(NSData *)data from:(NSString *)fromId type:(TICMessageType)type {
+    // 接收到房间内其他成员发出的文本消息，将消息按"[发送者] 消息内容"格式展示在界面上
+    NSLog(@"%@", data);
 }
 
-- (void)onTICRecvMessage:(TIMMessage *)message
-{
+// 收到消息
+- (void)onRecvGroupCustomMsg:(NSString *)fromId context:(NSData *)data {
+    NSLog(@"");
 }
 
 
@@ -246,103 +238,98 @@
 
 // 发送消息给老师
 -(void) sendC2CMessageToTeacher: (NSString *) message{
-    
-    [[TICManager sharedInstance] sendTextMessage:message toUserId:_teacherId callback:^(TICModule module, int code, NSString *desc){
-        
-        if(code == 0){
-            NSLog(@"消息发送成功");
-        } else {
-            NSLog(@"消息发送失败: %@", desc);
-        }
-        
+   
+    [[TICManager sharedInstance] sendTextMessage:message toUser:_teacherId succ:^{
+        NSLog(@"消息发送成功");
+    } failed:^(NSString *module, int errId, NSString *errMsg) {
+        NSLog(@"消息发送失败: %@", errMsg);
     }];
 }
 
 
-#pragma mark - event listener
-- (void)onTICUserVideoAvailable:(NSString *)userId available:(BOOL)available
-{
-    if([userId isEqualToString:_teacherId]) return;
-    if([userId isEqualToString:_userId]) return;
-    
-    if(available){
-        TICRenderView *render = [[TICRenderView alloc] init];
-        render.userId = userId;
-        render.streamType = TICStreamType_Main;
-        [self.view addSubview:render];
-       
-        [[TRTCCloud sharedInstance] startRemoteView:userId view:render];
-        [self addRenderView:render];
-    }
-    else{
-        TICRenderView *render = [self getRenderView:userId streamType:TICStreamType_Main];
-        [[TRTCCloud sharedInstance] stopRemoteView:userId];
-        [self removeRenderView:render];
-    }
-}
-
-    
-- (void)onTICUserSubStreamAvailable:(NSString *)userId available:(BOOL)available
-{
-    
-}
-
-- (TICRenderView *)getRenderView:(NSString *)userId streamType:(TICStreamType)streamType
-{
-    for (TICRenderView *render in self.allStudentsRenderViews) {
-        if([render.userId isEqualToString:userId] && render.streamType == streamType){
-            return render;
-        }
-    }
-    return nil;
-}
-
--(void)onTICMemberJoin:(NSArray*)members {
-    
-    for(NSString *userId in members){
-        if([userId isEqualToString:_teacherId]) continue;
-        if([userId isEqualToString:_userId]) continue;
-        
-        TICRenderView *render = [[TICRenderView alloc] init];
-        render.userId = userId;
-        render.streamType = TICStreamType_Main;
-        [[TRTCCloud sharedInstance] startRemoteView:userId view:render];
-        
-        [self addRenderView:render];
-    }
-}
-
--(void)onTICMemberQuit:(NSArray*)members {
-    for(NSString *userId in members){
-        if([userId isEqualToString:_teacherId]) continue;
-        if([userId isEqualToString:_userId]) continue;
-        
-        TICRenderView *render = [self getRenderView:userId streamType:TICStreamType_Main];
-        
-        if(render != nil){
-            [self removeRenderView:render];
-        }
-    }
-}
-
+#pragma mark - TICClassroomAVEventListener
 /**
  * 音视频事件回调
  */
+- (void)onUserUpdateInfo:(QAVUpdateEvent)event users:(NSArray *)users {
+    if (users.count <= 0) {
+        return;
+    }
+    for (NSString *identifier in users) {
+        if([identifier isEqualToString:_teacherId]) continue;
+        
+        switch (event) {
+            case QAV_EVENT_ID_ENDPOINT_HAS_CAMERA_VIDEO:
+            {
+                /*
+                 创建并添加渲染视图，传入userID和渲染画面类型，这里传入 QAVVIDEO_SRC_TYPE_CAMERA（摄像头画面）,
+                 */
+                ILiveFrameDispatcher *frameDispatcher = [[ILiveRoomManager getInstance] getFrameDispatcher];
+                ILiveRenderView *renderView = [frameDispatcher addRenderAt:CGRectZero forIdentifier:identifier srcType:QAVVIDEO_SRC_TYPE_CAMERA];
+                renderView.autoRotate = NO;
+//                renderView.userId = identifier;
+                if ([identifier isEqualToString:[[ILiveLoginManager getInstance] getLoginId]]) {
+                    renderView.rotateAngle = ILIVEROTATION_180;
+                }
+                
+                [self addRenderView:renderView];
+            }
+            break;
+            case QAV_EVENT_ID_ENDPOINT_NO_CAMERA_VIDEO:
+            {
+                // 移除渲染视图
+                ILiveFrameDispatcher *frameDispatcher = [[ILiveRoomManager getInstance] getFrameDispatcher];
+                ILiveRenderView *renderView = [frameDispatcher removeRenderViewFor:identifier srcType:QAVVIDEO_SRC_TYPE_CAMERA];
+                [self removeRenderView:renderView];
+            }
+            break;
+            case QAV_EVENT_ID_ENDPOINT_HAS_SCREEN_VIDEO:
+            {
+                ILiveFrameDispatcher *frameDispatcher = [[ILiveRoomManager getInstance] getFrameDispatcher];
+                ILiveRenderView *renderView = [frameDispatcher addRenderAt:CGRectZero forIdentifier:identifier srcType:QAVVIDEO_SRC_TYPE_SCREEN];
+                renderView.autoRotate = NO;
+                [self addRenderView:renderView];
+//                [self.view sendSubviewToBack:renderView];
+            }
+            break;
+            case QAV_EVENT_ID_ENDPOINT_NO_SCREEN_VIDEO:
+            {
+                // 移除渲染视图
+                ILiveFrameDispatcher *frameDispatcher = [[ILiveRoomManager getInstance] getFrameDispatcher];
+                ILiveRenderView *renderView = [frameDispatcher removeRenderViewFor:identifier srcType:QAVVIDEO_SRC_TYPE_SCREEN];
+            }
+            break;
+            case QAV_EVENT_ID_ENDPOINT_HAS_MEDIA_FILE_VIDEO:
+            {
+                ILiveFrameDispatcher *frameDispatcher = [[ILiveRoomManager getInstance] getFrameDispatcher];
+                ILiveRenderView *renderView = [frameDispatcher addRenderAt:CGRectZero forIdentifier:identifier srcType:QAVVIDEO_SRC_TYPE_MEDIA];
+                renderView.autoRotate = NO;
+                [self addRenderView:renderView];
+//                [self.view sendSubviewToBack:renderView];
+            }
+            break;
+            case QAV_EVENT_ID_ENDPOINT_NO_MEDIA_FILE_VIDEO:
+            {
+                // 移除渲染视图
+                ILiveFrameDispatcher *frameDispatcher = [[ILiveRoomManager getInstance] getFrameDispatcher];
+                ILiveRenderView *renderView = [frameDispatcher removeRenderViewFor:identifier srcType:QAVVIDEO_SRC_TYPE_MEDIA];
+                [self removeRenderView:renderView];
+            }
+            break;
+            default:
+            break;
+        }
+    }
+}
 
-- (void) addRenderView: (TICRenderView *)renderView
+- (void) addRenderView: (ILiveRenderView *)renderView
 {
-    UIView *wrapper = [[UIView alloc] init];
-    wrapper.layer.cornerRadius = 10;
-    wrapper.clipsToBounds = YES;
-    
-    [wrapper addSubview:renderView];
-    
     [_allStudentsRenderViews addObject:renderView];
-    [_liveListContainer addSubview:wrapper];
+    [_liveListContainer addSubview:renderView];
     [self onCameraNumChange];
 }
 
-- (void) removeRenderView: (TICRenderView *)renderView
+- (void) removeRenderView: (ILiveRenderView *)renderView
 {
     [_allStudentsRenderViews removeObject:renderView];
     [renderView removeFromSuperview];
@@ -353,17 +340,39 @@
 /**
  * 首帧到达回调
  */
-//- (void)onFirstFrameRecved:(int)width height:(int)height identifier:(NSString *)identifier srcType:(avVideoSrcType)srcType {
-//
-//}
+- (void)onFirstFrameRecved:(int)width height:(int)height identifier:(NSString *)identifier srcType:(avVideoSrcType)srcType {
+    
+}
+
+/**
+ * SDK主动退出房间提示
+ */
+- (void)onRoomDisconnect:(int)reason {
+    
+}
+
+/**
+ *  有人加入课堂时的通知回调
+ *
+ *  @param members 加入成员的identifier（NSString*）列表
+ */
+-(void)onMemberJoin:(NSArray*)members {
+//    NSString *msgInfo = [NSString stringWithFormat:@"[%@] %@",members.firstObject, @"加入了房间"];
+//    self.chatView.text = [NSString stringWithFormat:@"%@\n%@",self.chatView.text, msgInfo];;
+}
+
+/**
+ *  有人退出课堂时的通知回调
+ *
+ *  @param members 退出成员的identifier（NSString*）列表
+ */
+-(void)onMemberQuit:(NSArray*)members {
+//    NSString *msgInfo = [NSString stringWithFormat:@"[%@] %@",members.firstObject, @"退出了房间"];
+//    self.chatView.text = [NSString stringWithFormat:@"%@\n%@",self.chatView.text, msgInfo];;
+}
 
 // 点击举手按钮
 - (IBAction)onHandButtonClick:(id)sender {
-    NSLog(@"_mainRenderView width: %f", _mainRenderView.frame.size.width);
-    NSLog(@"_mainRenderView height: %f", _mainRenderView.frame.size.height);
-    NSLog(@"Screen Width: %f", SCREEN_WIDTH);
-
-    
     if(![_handButton.titleLabel.text isEqualToString: @"我要发言"]) return;
     
     [_handButton setTitle:@"等待老师同意..." forState:UIControlStateNormal];
@@ -374,37 +383,24 @@
 /**
  *  课堂被解散通知
  */
--(void) onTICClassroomDestroy {
+-(void)onClassroomDestroy {
     [self quitRoom];
 }
 
 #pragma mark - Accessor
 
 - (void)initBoardView {
-    
-    [[[TICManager sharedInstance] getBoardController] addDelegate: self];
-    UIView *boardView = [[[TICManager sharedInstance] getBoardController] getBoardRenderView];
-    boardView.frame = _boardViewContainer.bounds;
-    
-    [_boardViewContainer addSubview:boardView];
-    [[[TICManager sharedInstance] getBoardController] setDrawEnable:NO];
+    [_boardView initWithRoomID:_classID];
+    [_boardView setBrushModel:TXBoardBrushModelNone]; // 禁止学生端画画
 }
 
 - (void) initMainRenderView{
-    _mainRenderView.userId = _teacherId;
-    _mainRenderView.streamType = TICStreamType_Main;
-    [[TRTCCloud sharedInstance] startRemoteView:_teacherId view:_mainRenderView];
-}
+    [_mainRenderView setIdentifier:_teacherId];
+    [_mainRenderView setSrcType:QAVVIDEO_SRC_TYPE_CAMERA];
+    _mainRenderView.autoRotate = NO;
     
-- (void) initLocalRenderView{
-    TICRenderView *render = [[TICRenderView alloc] init];
-    render.userId = _userId;
-    render.streamType = TICStreamType_Main;
-    [self.view addSubview:render];
-    
-    [[TRTCCloud sharedInstance] startLocalPreview:YES view:render];
-    
-    [self addRenderView:render];
+    ILiveFrameDispatcher *frameDispatcher = [[ILiveRoomManager getInstance] getFrameDispatcher];
+    [frameDispatcher addRenderView:_mainRenderView];
 }
 
 - (void) changeToOrientation: (int) orientation
@@ -420,5 +416,6 @@
     [[UIDevice currentDevice] setValue:[NSNumber numberWithInteger: orientation]
                                      forKey:@"orientation"];
 }
+
 
 @end
