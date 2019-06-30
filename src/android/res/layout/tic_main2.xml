@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#27b6f6"
+    android:orientation="vertical">
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="36dp"
+      android:layout_gravity="center"
+      android:orientation="horizontal">
+
+    <ImageView
+        android:id="@+id/closeBtn"
+        android:layout_width="30dp"
+        android:layout_height="40dp"
+        android:layout_gravity="center_vertical"
+        android:padding="10dp"
+        android:scaleType="centerInside"
+        android:src="@drawable/back" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:text="英语外教第一课"
+        android:textColor="@android:color/white"
+        android:textSize="18sp" />
+
+  </LinearLayout>
+
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="0dp"
+      android:layout_weight="1"
+      android:background="#2e6480"
+      android:orientation="horizontal">
+
+    <!--左侧布局-->
+
+    <LinearLayout
+        android:id="@+id/LayoutLeft"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="7"
+        android:orientation="vertical">
+
+
+      <!--白板视图-->
+      <!--<android.support.constraint.ConstraintLayout-->
+          <!--android:id="@+id/LayoutLeftTop"-->
+          <!--android:layout_width="match_parent"-->
+          <!--android:layout_height="0dp"-->
+          <!--android:layout_marginLeft="10dp"-->
+          <!--android:layout_marginTop="10dp"-->
+          <!--android:layout_marginBottom="10dp"-->
+          <!--android:layout_weight="3"-->
+          <!--android:background="#ffffff"-->
+          <!--android:gravity="center"-->
+          <!--android:orientation="vertical">-->
+
+        <!---->
+
+
+      <!--</android.support.constraint.ConstraintLayout>-->
+
+
+      <FrameLayout
+          android:id="@+id/LayoutLeftTopWrapper"
+          android:layout_width="match_parent"
+          android:layout_height="0dp"
+          android:layout_weight="3"
+          android:layout_marginLeft="10dp"
+          android:layout_marginTop="10dp"
+          android:layout_marginBottom="10dp"
+          android:background="#ffffff">
+
+
+        <com.tencent.boardsdk.board.WhiteboardView
+            android:id="@+id/whiteboardview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"/>
+
+      </FrameLayout>
+
+
+      <!--学生视频-->
+      <FrameLayout
+          android:id="@+id/LayoutLeftBottom"
+          android:layout_width="match_parent"
+          android:layout_height="0dp"
+          android:layout_weight="1"
+          android:orientation="horizontal"
+          android:paddingLeft="10dp"
+          android:paddingRight="5dp"
+          android:paddingBottom="10dp"
+          android:visibility="gone">
+
+
+        <ImageView
+            android:id="@+id/leftBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:src="@drawable/left" />
+
+        <HorizontalScrollView
+            android:id="@+id/av_root_scroll"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="30dp"
+            android:layout_marginTop="0dp"
+            android:layout_marginRight="30dp"
+            android:layout_marginBottom="0dp"
+            android:scrollbars="none">
+
+          <LinearLayout
+              android:id="@+id/av_root_container"
+              android:layout_width="wrap_content"
+              android:layout_height="match_parent"
+              android:orientation="horizontal">
+
+          </LinearLayout>
+
+        </HorizontalScrollView>
+
+        <ImageView
+            android:id="@+id/rightBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="right|center_vertical"
+            android:src="@drawable/right" />
+
+      </FrameLayout>
+
+    </LinearLayout>
+
+
+    <!--右侧布局-->
+
+    <LinearLayout
+        android:id="@+id/av_root_view_container"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginBottom="10dp"
+        android:layout_weight="3"
+        android:gravity="end"
+        android:orientation="vertical">
+
+
+      <FrameLayout
+          android:layout_width="match_parent"
+          android:layout_height="0dp"
+          android:layout_marginBottom="10dp"
+          android:layout_weight="2"
+          android:background="#ffffff">
+
+        <com.tencent.ilivesdk.view.ILiveRootView
+            android:id="@+id/av_teacher_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:visibility="visible" />
+
+        <ImageView
+            android:id="@+id/toggleBtn"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_gravity="right"
+            android:scaleType="centerInside"
+            android:src="@drawable/toggle" />
+
+      </FrameLayout>
+
+
+      <LinearLayout
+          android:layout_width="match_parent"
+          android:layout_height="40dp"
+          android:orientation="horizontal">
+
+
+        <Button
+            android:id="@+id/handBtn"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:layout_marginRight="10dp"
+            android:layout_weight="1"
+            android:background="@drawable/button_corner_bg"
+            android:gravity="center"
+            android:text="我要发言"
+            android:textColor="#fff"
+            android:textSize="14sp" />
+
+        <Button
+            android:id="@+id/collapseBtn"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:layout_weight="1"
+            android:background="@drawable/button_corner_bg"
+            android:gravity="center"
+            android:text="展开"
+            android:textColor="#fff"
+            android:textSize="14sp" />
+
+      </LinearLayout>
+
+
+      <com.tencent.ilivesdk.view.ILiveRootView
+          android:id="@+id/av_self_view"
+          android:layout_width="match_parent"
+          android:layout_height="0dp"
+          android:layout_weight="2"
+          android:visibility="visible" />
+
+
+      <!--聊天框-->
+      <LinearLayout
+          android:id="@+id/LayoutRightBottom"
+          android:layout_width="match_parent"
+          android:layout_height="0dp"
+          android:layout_weight="3"
+          android:background="@drawable/layout_bg"
+          android:orientation="vertical"
+          android:padding="10dp"
+          android:visibility="gone">
+
+
+        <ScrollView
+            android:id="@+id/ChatScrollView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+
+          <LinearLayout
+              android:id="@+id/MessageContainer"
+              android:layout_width="match_parent"
+              android:layout_height="0dp"
+              android:layout_weight="1"
+              android:orientation="vertical">
+
+
+          </LinearLayout>
+
+
+        </ScrollView>
+
+
+        <!--输入框-->
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:orientation="horizontal">
+
+
+          <EditText
+              android:id="@+id/editText"
+              android:layout_width="0dp"
+              android:layout_height="wrap_content"
+              android:layout_gravity="center_vertical"
+              android:layout_weight="1"
+              android:background="@drawable/edittext"
+              android:ems="10"
+              android:inputType="textPersonName"
+              android:text="" />
+
+          <ImageView
+              android:layout_width="40dp"
+              android:layout_height="match_parent"
+              android:layout_gravity="right|center_vertical"
+              android:layout_marginLeft="5dp"
+              android:src="@drawable/keyboard" />
+
+        </LinearLayout>
+
+
+      </LinearLayout>
+
+
+    </LinearLayout>
+
+  </LinearLayout>
+
+
+</LinearLayout>
