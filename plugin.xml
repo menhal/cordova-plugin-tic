@@ -74,23 +74,15 @@
         </config-file>
 
 		<source-file src="src/android/com/tencent/ticsdk/cordova/Tic.java" target-dir="src/com/tencent/ticsdk/cordova" />
-        <source-file src="src/android/com/tencent/ticsdk/cordova/TicMessageHandler.java" target-dir="src/com/tencent/ticsdk/cordova" />
-        <source-file src="src/android/com/tencent/ticsdk/cordova/TicMessageListener.java" target-dir="src/com/tencent/ticsdk/cordova" />
-        <source-file src="src/android/com/tencent/ticsdk/cordova/TicMessageView.java" target-dir="src/com/tencent/ticsdk/cordova" />
-
         <source-file src="src/android/com/tencent/ticsdk/observer/ClassEventObservable.java" target-dir="src/com/tencent/ticsdk/observer" />
         <source-file src="src/android/com/tencent/ticsdk/observer/ClassroomIMObservable.java" target-dir="src/com/tencent/ticsdk/observer" />
         <source-file src="src/android/com/tencent/ticsdk/observer/UserStatusObservable.java" target-dir="src/com/tencent/ticsdk/observer" />
-        <resource-file src="src/android/res/layout/tic_main2.xml" target="res/layout/tic_main2.xml" />
+        <resource-file src="src/android/res/layout/tic_main.xml" target="res/layout/tic_main.xml" />
         <resource-file src="src/android/res/drawable-hdpi/hand.png" target="res/drawable-hdpi/hand.png" />
         <resource-file src="src/android/res/drawable-hdpi/back.png" target="res/drawable-hdpi/back.png" />
         <resource-file src="src/android/res/drawable-hdpi/left.png" target="res/drawable-hdpi/left.png" />
         <resource-file src="src/android/res/drawable-hdpi/right.png" target="res/drawable-hdpi/right.png" />
-        <resource-file src="src/android/res/drawable-hdpi/keyboard.png" target="res/drawable-hdpi/keyboard.png" />
-        <resource-file src="src/android/res/drawable-hdpi/toggle.png" target="res/drawable-hdpi/toggle.png" />
-        <resource-file src="src/android/res/drawable-hdpi/student.png" target="res/drawable-hdpi/student.png" />
         <resource-file src="src/android/res/drawable-hdpi/layout_bg.xml" target="res/drawable-hdpi/layout_bg.xml" />
-        <resource-file src="src/android/res/drawable-hdpi/button_corner_bg.xml" target="res/drawable-hdpi/button_corner_bg.xml" />
         <framework src="repositories.gradle" custom="true" type="gradleReference" />
 
     </platform>
