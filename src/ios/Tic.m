@@ -2,16 +2,41 @@
 #import <Cordova/CDV.h>
 #import <Cordova/CDVPlugin.h>
 #import <TICSDK/TICSDK.h>
+#import <YYImage/YYImage.h>
 #import "ClassroomViewController.h"
 #import "ClassroomViewController.h"
+#import "TicChatItemView.h"
 
 @implementation Tic
 
 - (void) init:(CDVInvokedUrlCommand*)command
 {
-    NSLog(@"初始化插件");
+//    ClassroomViewController *classroomVC = [[ClassroomViewController alloc] initWithClasssID:@"" userId:@"" teacherId: @"" plugin: self];
+//    UIViewController *rootViewController = [[UIApplication sharedApplication] keyWindow].rootViewController;
+//
+//    UIView *rootView = rootViewController.view ;
+//
+//    [rootViewController addChildViewController:classroomVC];
+//    [rootView addSubview:classroomVC.view];
+    
+//    UIViewController *rootViewController = [[UIApplication sharedApplication] keyWindow].rootViewController;
+//    UIView *rootView = rootViewController.view ;
+// 
+////    UIImage *image = [YYImage imageNamed:@"Fireworks"];
+//    
+//    UIImage *image = [YYImage imageNamed:@"Fireworks.gif"];
+//    YYAnimatedImageView *imageView = [[YYAnimatedImageView alloc] initWithImage:image];
+//    
+//    imageView.frame = CGRectMake(0, 0, 300, 200);
+//    [rootView addSubview:imageView];
+//    
+//    return;
+    
+    
+//    NSLog(@"初始化插件");
     NSString *sdkappid = [command.arguments objectAtIndex:0];
-    [[TICManager sharedInstance] initSDK: sdkappid];
+    int result = [[TICManager sharedInstance] initSDK: sdkappid];
+    NSLog(@"初始化插件%d", result);
 }
 
 - (void) join:(CDVInvokedUrlCommand*)command
@@ -43,8 +68,9 @@
     
     NSString *teacherId = [args valueForKey:@"teacherId"];
     NSString *role = [args valueForKey:@"role"];
+    NSString *userName = [args valueForKey:@"userName"];
     
-    ClassroomViewController *classroomVC = [[ClassroomViewController alloc] initWithClasssID:inputRoomID teacherId: teacherId plugin: self];
+    ClassroomViewController *classroomVC = [[ClassroomViewController alloc] initWithClasssID:inputRoomID userId:userName teacherId: teacherId plugin: self];
   
     
     [[TICManager sharedInstance] joinClassroomWithOption:^TICClassroomOption *(TICClassroomOption *option) {

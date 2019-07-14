@@ -1,18 +1,14 @@
 package com.tencent.ticsdk.cordova;
 
 import android.Manifest;
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
-import android.nfc.Tag;
 import android.os.Build;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.text.Layout;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -23,15 +19,12 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-import com.tencent.TIMMessage;
 import com.tencent.TIMUserStatusListener;
 import com.tencent.boardsdk.board.WhiteboardView;
 import com.tencent.ilivesdk.ILiveCallBack;
-import com.tencent.ilivesdk.ILiveConstants;
 import com.tencent.ilivesdk.ILiveSDK;
 import com.tencent.ilivesdk.adapter.CommonConstants;
 import com.tencent.ilivesdk.adapter.ContextEngine;
@@ -40,7 +33,6 @@ import com.tencent.ticsdk.TICClassroomOption;
 import com.tencent.ticsdk.TICManager;
 import com.tencent.ticsdk.TICSDK;
 import com.tencent.ticsdk.listener.IClassEventListener;
-import com.tencent.ticsdk.listener.IClassroomIMListener;
 import com.tencent.ticsdk.observer.ClassEventObservable;
 import com.tencent.ticsdk.observer.ClassroomIMObservable;
 
@@ -48,12 +40,12 @@ import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaArgs;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.LOG;
-
 import org.apache.cordova.PluginResult;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Dictionary;
 import java.util.List;
 
 
@@ -81,11 +73,12 @@ public class Tic extends CordovaPlugin implements IClassEventListener, TicMessag
     private HorizontalScrollView av_root_scroll = null; // 学生列表横向滚动视图
     private ViewGroup av_root_container = null;  // 学生列表container
     private ILiveRootView av_teacher_view = null; // 教师视频
-    private ILiveRootView av_self_view = null; // 教师视频
+    private TicLiveView av_self_view = null; // 教师视频
     private WhiteboardView whiteboardview = null;  // 白板视图
     private LinearLayout MessageContainer = null; // 聊天内容
     private ScrollView chatScrollView = null; // 聊天滚动区
     private EditText editText = null; // 输入框
+    private ViewGroup av_self_view_container = null;
 
     private int roomId = 0;
     private String teacherId = "";
@@ -94,6 +87,7 @@ public class Tic extends CordovaPlugin implements IClassEventListener, TicMessag
     private String role = "";
     private CallbackContext callbackContext = null;
     private TicMessageHandler messageHandler = null;
+    private JSONObject userScores = new JSONObject();
 
     @Override
     protected void pluginInitialize() {
@@ -245,7 +239,7 @@ public class Tic extends CordovaPlugin implements IClassEventListener, TicMessag
 
         // 添加主对话框
         mainDialog = new Dialog(activity, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
-        mainDialog.setContentView(getIdentifier("tic_main2", "layout"));
+        mainDialog.setContentView(getIdentifier("tic_main", "layout"));
 
 
         handBtn = (Button) findViewById("handBtn");  // 举手按钮
@@ -260,11 +254,18 @@ public class Tic extends CordovaPlugin implements IClassEventListener, TicMessag
         av_root_scroll = (HorizontalScrollView) findViewById("av_root_scroll"); // 学生列表横向滚动视图
         av_root_container = (ViewGroup) findViewById("av_root_container");  // 学生列表container
         av_teacher_view = (ILiveRootView) findViewById("av_teacher_view"); // 教师视频
-        av_self_view = (ILiveRootView) findViewById("av_self_view"); // 本人视频
+//        av_self_view = (TicLiveView) findViewById("av_self_view"); // 本人视频
         whiteboardview = (WhiteboardView) findViewById("whiteboardview");  // 白板视图
         MessageContainer = (LinearLayout) findViewById("MessageContainer");
         chatScrollView = (ScrollView) findViewById("ChatScrollView"); // 聊天滚动区
         editText = (EditText) findViewById("editText"); // 输入框
+        av_self_view_container =  (ViewGroup) findViewById("av_self_view_container"); // 本人视频
+        av_self_view = new TicLiveView(activity);
+        av_self_view.initViews();
+        av_self_view_container.addView(av_self_view);
+
+        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        av_self_view.setLayoutParams(lp);
 
         // 关闭对话框事件
         mainDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
@@ -336,7 +337,7 @@ public class Tic extends CordovaPlugin implements IClassEventListener, TicMessag
                     if (event == null || !event.isShiftPressed()) {
                         // the user is done typing.
                         String message = editText.getText().toString();
-                        messageHandler.sendBroadcast(message);
+                        messageHandler.sendBroadcast(message, userId);
                         showMessage(userId, message);
                         editText.setText("");
                         return false; // consume.
@@ -357,7 +358,7 @@ public class Tic extends CordovaPlugin implements IClassEventListener, TicMessag
 
             layoutLeftBottom.setVisibility(View.VISIBLE);
             layoutRightBottom.setVisibility(View.VISIBLE);
-            av_self_view.setVisibility(View.GONE);
+            av_self_view_container.setVisibility(View.GONE);
             collapseBtn.setText("收起");
             stopSelfVideo();
             createMemberVideos();
@@ -366,7 +367,7 @@ public class Tic extends CordovaPlugin implements IClassEventListener, TicMessag
 
             layoutLeftBottom.setVisibility(View.GONE);
             layoutRightBottom.setVisibility(View.GONE);
-            av_self_view.setVisibility(View.VISIBLE);
+            av_self_view_container.setVisibility(View.VISIBLE);
             collapseBtn.setText("展开");
             clearMemberVideos();
             renderSelfVideo();
@@ -439,7 +440,7 @@ public class Tic extends CordovaPlugin implements IClassEventListener, TicMessag
         LinearLayout layout = (LinearLayout) findViewById("av_root_container");
 
         for (int i = 0; i < layout.getChildCount(); i++) {
-            ILiveRootView video = (ILiveRootView) layout.getChildAt(i);
+            TicLiveView video = (TicLiveView) layout.getChildAt(i);
             video.closeVideo();
 
             layout.post(new Runnable(){
@@ -452,8 +453,7 @@ public class Tic extends CordovaPlugin implements IClassEventListener, TicMessag
 
 
     private void renderSelfVideo(){
-        av_self_view.initViews();
-        av_self_view.render(userId, 1);
+        av_self_view.render(userId);
     }
 
     private void stopSelfVideo(){
@@ -464,18 +464,18 @@ public class Tic extends CordovaPlugin implements IClassEventListener, TicMessag
     private void renderUserVideo(String userId){
         final LinearLayout layout = (LinearLayout) findViewById("av_root_container");
 
-        final ILiveRootView videoView = new ILiveRootView(mainDialog.getContext());
-        videoView.initViews();
-        videoView.render(userId, 1);
-        videoView.setDeviceRotation(180);
-        layout.addView(videoView);
+        final TicLiveView liveView = new TicLiveView(mainDialog.getContext());
+        liveView.initViews();
+        liveView.render(userId);
+        layout.addView(liveView);
+        updateUserScore(userId);
 
         layout.post(new Runnable(){
             public void run(){
                 int height = layout.getHeight();
                 LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(height, height);
                 lp.rightMargin = 20;
-                videoView.setLayoutParams(lp);
+                liveView.setLayoutParams(lp);
             }
         });
     }
@@ -484,8 +484,9 @@ public class Tic extends CordovaPlugin implements IClassEventListener, TicMessag
         LinearLayout layout = (LinearLayout) findViewById("av_root_container");
 
         for (int i = 0; i < layout.getChildCount(); i++) {
-            ILiveRootView video = (ILiveRootView) layout.getChildAt(i);
-            if(video.getIdentifier().equals(userId)) {
+            TicLiveView video = (TicLiveView) layout.getChildAt(i);
+
+            if(video.userId.equals(userId)) {
                 video.closeVideo();
 
                 layout.post(new Runnable(){
@@ -606,6 +607,35 @@ public class Tic extends CordovaPlugin implements IClassEventListener, TicMessag
     @Override
     public void onBroadcast(String fromUserId, String text) {
         showMessage(fromUserId, text);
+    }
+
+    @Override
+    public void onScore(String userId, int integral, int addIntegral, String msg) {
+
+        try{
+            userScores.put(userId, integral);
+
+        } catch (JSONException e){
+
+            log(e.getMessage());
+        }
+
+        updateUserScore(userId);
+    }
+
+
+    private void updateUserScore(String userId){
+
+        LinearLayout layout = (LinearLayout) findViewById("av_root_container");
+        int score = userScores.optInt(userId, 0);
+
+        for (int i = 0; i < layout.getChildCount(); i++) {
+            TicLiveView video = (TicLiveView) layout.getChildAt(i);
+
+            if(video.userId.equals(userId)) {
+                video.setScore(score);
+            }
+        }
     }
 
     // 在对话框显示聊天信息

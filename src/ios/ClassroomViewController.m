@@ -16,46 +16,89 @@
 
 #define sVideoW SCREEN_WIDTH * 0.2 // 小屏幕视频宽度
 #define sVideoH SCREEN_HEIGHT * 0.3 // 小屏幕视频宽度
+#define isIpad SCREEN_WIDTH > 1000 // 屏幕大于1000的是ipad
+#define MainBottomSpace isIpad ? 125 : 65
+#define LiveBottomHeight isIpad ? 120 : 60
 
 #import "ClassroomViewController.h"
 #import <objc/message.h>
+#import <YYImage/YYImage.h>
+#import "CustomILiveView.h"
+#import "TicChatItemView.h"
 
-@interface ClassroomViewController () <UITextFieldDelegate> {
+
+@interface ClassroomViewController () <UITextFieldDelegate, UITableViewDelegate, UITableViewDataSource, TIMUserStatusListener> {
     NSString *_classID;
     NSString *_teacherId;
+    NSString *_userId;
     CDVPlugin *_plugin;
 }
-@property (weak, nonatomic) IBOutlet UIView *boardViewContainer;
 
-@property (weak, nonatomic) IBOutlet NSLayoutConstraint *borderViewContainerHeight;
+@property Boolean isShowStudents;
+@property Boolean isExchange;
+
+@property (weak, nonatomic) IBOutlet UIView *LeftContainer;
+
+@property (weak, nonatomic) IBOutlet UIView *LayoutLeftBottom;
+
+@property (weak, nonatomic) IBOutlet NSLayoutConstraint *LayoutLeftTopBottomSpace;
+
+@property (weak, nonatomic) IBOutlet UIView *AvSelfContainer;
+
+@property (weak, nonatomic) IBOutlet UIView *ChatContainer;
+
+@property (weak, nonatomic) IBOutlet UIView *LeftTopViewContainer;
+
+@property (weak, nonatomic) IBOutlet UIView *RightTopViewContainer;
+
+@property (weak, nonatomic) IBOutlet NSLayoutConstraint *KeyboardContainerHeight;
+
+@property (weak, nonatomic) IBOutlet NSLayoutConstraint *MainContainerTop;
 
 @property (weak, nonatomic) IBOutlet TXBoardView *boardView;
 
-@property (weak, nonatomic) IBOutlet ILiveRenderView *mainRenderView;//!< 教师视频
+@property (weak, nonatomic) IBOutlet UIView *MainRenderViewContaienr;
 
 @property (weak, nonatomic) IBOutlet UIButton *handButton;  // 举手按钮
+
+@property (weak, nonatomic) IBOutlet UIButton *toggleButton;
+
+@property (weak, nonatomic) IBOutlet UITableView *ChatList;
+
+@property (weak, nonatomic) IBOutlet UITextField *ChatInput;
 
 @property (weak, nonatomic) IBOutlet UIScrollView *liveListContainer;
 
 @property (nonatomic, strong) NSMutableArray *allStudentsRenderViews; //所有学生视频
 
+@property (nonatomic, strong) NSMutableDictionary *studentScore; //所有学生星星
+
+@property (nonatomic, strong) NSMutableArray *chatContentList; //所有学生视频
+
+@property (weak, nonatomic) IBOutlet NSLayoutConstraint *LiveListHeight;
+
+@property (weak, nonatomic) IBOutlet YYAnimatedImageView *GifPlayer;
+
 @end
 
 @implementation ClassroomViewController
 
-//
-//- (BOOL)shouldAutorotate
-//{
-//    return NO;
-//}
-
-- (instancetype)initWithClasssID:(NSString *)classId teacherId: (NSString *) teacherId plugin: (CDVPlugin *)plugin
+- (instancetype)initWithClasssID:(NSString *)classId userId: (NSString *) userId teacherId: (NSString *) teacherId plugin: (CDVPlugin *)plugin
 {
     self = [super init];
+    self.isShowStudents = isIpad ? YES : NO;
+    self.isExchange = NO;
+    
     if (self) {
+        
+        //        [[ILiveLoginManager getInstance] getLoginId];  // 获取当前用户id
+        
         _classID = classId;
         _teacherId = teacherId;
+        _userId = userId;
         _allStudentsRenderViews = [[NSMutableArray alloc] init];
+        _chatContentList = [[NSMutableArray alloc] init];
+        _studentScore = [[NSMutableDictionary alloc] init];
         _plugin = plugin;
     }
     
@@ -68,23 +111,20 @@
     // 强制横屏
     [self changeToOrientation: UIDeviceOrientationLandscapeLeft];
     [self.view setFrame:CGRectMake(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)];
-    _borderViewContainerHeight.constant = SCREEN_HEIGHT * 6 / 10;
+    [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationNone];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillShow:) name:UIKeyboardWillShowNotification object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
+    
+    [[TICManager sharedInstance] setUserStatusListener:self];
+    // ipad 下方学生视频要大些
+    _LiveListHeight.constant = LiveBottomHeight;
+    _LayoutLeftTopBottomSpace.constant = MainBottomSpace;
     
     // UI设置
-    [self initMainRenderView];
-    [self initBoardView];
-    
-//    [_boardViewContainer.layer setCornerRadius:20.0f];
-//    [self.boardView.layer setCornerRadius:20.0f];
-    //    [self.view addSubview:self.chatView];
-    
-    
-    
-    
-    // 调用TIC接口，添加白板视图，建立TICManager和白板视图的联系
-    [[TICManager sharedInstance] addBoardView:self.boardView andLoadHistoryData:^(int errCode, NSString *errMsg) {
-        NSLog(@"加载课堂历史数据完成");
-    }];
+    [self initBoardAndMainRenderViews];
+    [self initChatView];
     
     // 打开摄像头
     [[TICManager sharedInstance] enableCamera:CameraPosFront enable:true succ:^{
@@ -95,6 +135,7 @@
     
     // 关闭mic
     [self setMic:false];
+    [self showAnimate];
 }
 
 -(void)dealloc {
@@ -178,15 +219,14 @@
     }
     
     // 计算并设置每一个渲染视图的frame
-    CGFloat renderViewHeight = _liveListContainer.bounds.size.height;
+    CGFloat renderViewHeight = LiveBottomHeight;
     CGFloat renderViewWidth = [self getLiveViewWidth];
     __block CGFloat renderViewX = 0;
     
-    [_allStudentsRenderViews enumerateObjectsUsingBlock:^(ILiveRenderView *renderView, NSUInteger idx, BOOL * _Nonnull stop) {
+    [_allStudentsRenderViews enumerateObjectsUsingBlock:^(CustomILiveView *renderView, NSUInteger idx, BOOL * _Nonnull stop) {
         if(idx != 0) renderViewX = renderViewX + (renderViewWidth + 10);
         CGRect frame = CGRectMake(renderViewX, 0, renderViewWidth, renderViewHeight);
         renderView.frame = frame;
-        [renderView.layer setCornerRadius:10.0f];
         [renderView clipsToBounds];
     }];
     
@@ -196,7 +236,7 @@
 
 
 - (CGFloat) getLiveViewWidth {
-    CGFloat renderViewHeight = _liveListContainer.bounds.size.height;
+    CGFloat renderViewHeight = LiveBottomHeight;
     return renderViewHeight ;
 }
 
@@ -206,10 +246,15 @@
 // 收到文本消息
 - (void)onRecvTextMsg:(NSString *)text from:(NSString *)fromId type:(TICMessageType)type {
     // 接收到房间内其他成员发出的文本消息，将消息按"[发送者] 消息内容"格式展示在界面上
+    
     if([fromId isEqualToString:_teacherId]){
         [self onTeacherC2CMessage:text];
+    } else {
+        NSDictionary *data = [self getMessageFromJson:text];
+        if(data != nil) [self showChatMessage:data];
     }
 }
+
 
 // 收到自定义消息
 - (void)onRecvCustomMsg:(NSData *)data from:(NSString *)fromId type:(TICMessageType)type {
@@ -229,11 +274,68 @@
         [self setMic:true];
         [self sendC2CMessageToTeacher:@"TIMCustomHandRecOpenOk"];
         [_handButton setTitle:@"正在发言" forState:UIControlStateNormal];
+        [self addChatMessage:@"已经同意您的发言请求" from:@"系统"];
     } else if([message isEqualToString:@"TIMCustomHandReplyNo"]){
         [self setMic:false];
         [self sendC2CMessageToTeacher:@"TIMCustomHandRecCloseOk"];
         [_handButton setTitle:@"我要发言" forState:UIControlStateNormal];
+        [self addChatMessage:@"发言已结束" from:@"系统"];
+    } else {
+        
+//        NSString *message2 = @"{\"type\":\"chat\",\"msg\":\"消息内容\",\"uid\":\"Android_trtc_04\",\"integral\":\"10\",\"addIntegral\":\"2\"}";
+        
+//            NSString *message2 = @"{\"type\":\"laud\",\"msg\":\"得到了积分\",\"uid\":\"iOS_trtc_01\",\"integral\":\"10\",\"addIntegral\":\"2\"}";
+        
+        NSDictionary *data = [self getMessageFromJson:message];
+        if(data != nil) [self showChatMessage:data];
     }
+}
+
+- (void) showChatMessage: (NSDictionary *) data
+{
+    NSString *type = [data objectForKey:@"type"];
+    NSString *uid = [data objectForKey:@"uid"];
+    NSString *text = [data objectForKey:@"msg"];
+    NSString *integral = [data objectForKey:@"integral"];
+    NSString *addIntegral = [data objectForKey:@"addIntegral"];
+    
+    if([type isEqualToString:@"chat"]){
+        [self addChatMessage:text from:uid];
+    } else {
+//        NSString *message = [NSString stringWithFormat:@"%@获得了%@积分, 让我们为他鼓掌吧！！！, 让我们为他鼓掌吧！！！, 让我们为他鼓掌吧！！！, 让我们为他鼓掌吧！！！, 让我们为他鼓掌吧！！！", uid, addIntegral];
+        [self addChatMessage:text from: @"系统"];
+        [self addScoreForUser:uid integral: integral];
+    }
+}
+
+- (void) addScoreForUser: (NSString *) userId integral: (NSString *) integral
+{
+    [_allStudentsRenderViews enumerateObjectsUsingBlock:^(CustomILiveView *renderView, NSUInteger idx, BOOL * _Nonnull stop) {
+        
+        if([renderView.userId isEqualToString:userId])
+        {
+            [_studentScore setValue:integral forKey:userId];
+            [renderView setScoreWith: [integral intValue]];
+        }
+    }];
+    
+    [self showAnimate];
+}
+
+- (void) showAnimate
+{
+    UIImage *image = [YYImage imageNamed:@"Fireworks.gif"];
+    [_GifPlayer setImage:image];
+    [_GifPlayer setHidden:NO];
+    
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [self hideAnimate];
+    });
+}
+
+- (void) hideAnimate
+{
+    [_GifPlayer setHidden:YES];
 }
 
 // 发送消息给老师
@@ -246,6 +348,48 @@
     }];
 }
 
+// 广播消息
+- (void) sendMessageToAll: (NSString *) message{
+    
+    NSDictionary *data = @{@"type": @"chat" ,@"msg":message,@"uid":_userId,@"integral":@"",@"addIntegral":@""};
+    
+    NSString *json = [self getJsonFromMessage:data];
+    
+    [[TICManager sharedInstance] sendTextMessage: json toUser:nil succ:^{
+        [self addChatMessage:message from: _userId];
+    } failed:^(NSString *module, int errId, NSString *errMsg) {
+        NSLog(@"消息发送失败: %@", errMsg);
+    }];
+}
+
+- (NSDictionary *) getMessageFromJson: (NSString *) jsonString
+{
+    if (jsonString == nil) {
+        return nil;
+    }
+    
+    NSData *jsonData = [jsonString dataUsingEncoding:NSUTF8StringEncoding];
+    NSError *err;
+    NSDictionary *dic = [NSJSONSerialization JSONObjectWithData:jsonData
+                                                        options:NSJSONReadingMutableContainers
+                                                          error:&err];
+    if(err)
+    {
+        NSLog(@"json解析失败：%@",err);
+        return nil;
+    }
+    
+    return dic;
+}
+
+- (NSString *) getJsonFromMessage: (NSDictionary *)dic
+{
+    NSData *data =    [NSJSONSerialization dataWithJSONObject:dic options:NSJSONWritingPrettyPrinted error:nil];
+    
+    NSString *json = [[NSString alloc] initWithData: data encoding:NSUTF8StringEncoding];
+    return json;
+}
+
 
 #pragma mark - TICClassroomAVEventListener
 /**
@@ -255,88 +399,123 @@
     if (users.count <= 0) {
         return;
     }
+    
     for (NSString *identifier in users) {
         if([identifier isEqualToString:_teacherId]) continue;
         
         switch (event) {
             case QAV_EVENT_ID_ENDPOINT_HAS_CAMERA_VIDEO:
             {
-                /*
-                 创建并添加渲染视图，传入userID和渲染画面类型，这里传入 QAVVIDEO_SRC_TYPE_CAMERA（摄像头画面）,
-                 */
-                ILiveFrameDispatcher *frameDispatcher = [[ILiveRoomManager getInstance] getFrameDispatcher];
-                ILiveRenderView *renderView = [frameDispatcher addRenderAt:CGRectZero forIdentifier:identifier srcType:QAVVIDEO_SRC_TYPE_CAMERA];
-                renderView.autoRotate = NO;
-//                renderView.userId = identifier;
-                if ([identifier isEqualToString:[[ILiveLoginManager getInstance] getLoginId]]) {
-                    renderView.rotateAngle = ILIVEROTATION_180;
-                }
-                
-                [self addRenderView:renderView];
+                [self addRenderView: identifier];
             }
             break;
+                
             case QAV_EVENT_ID_ENDPOINT_NO_CAMERA_VIDEO:
             {
-                // 移除渲染视图
-                ILiveFrameDispatcher *frameDispatcher = [[ILiveRoomManager getInstance] getFrameDispatcher];
-                ILiveRenderView *renderView = [frameDispatcher removeRenderViewFor:identifier srcType:QAVVIDEO_SRC_TYPE_CAMERA];
-                [self removeRenderView:renderView];
+                [self removeRenderView: identifier];
             }
             break;
+                
             case QAV_EVENT_ID_ENDPOINT_HAS_SCREEN_VIDEO:
             {
-                ILiveFrameDispatcher *frameDispatcher = [[ILiveRoomManager getInstance] getFrameDispatcher];
-                ILiveRenderView *renderView = [frameDispatcher addRenderAt:CGRectZero forIdentifier:identifier srcType:QAVVIDEO_SRC_TYPE_SCREEN];
-                renderView.autoRotate = NO;
-                [self addRenderView:renderView];
-//                [self.view sendSubviewToBack:renderView];
+                [self addRenderView: identifier];
             }
             break;
+                
             case QAV_EVENT_ID_ENDPOINT_NO_SCREEN_VIDEO:
             {
-                // 移除渲染视图
-                ILiveFrameDispatcher *frameDispatcher = [[ILiveRoomManager getInstance] getFrameDispatcher];
-                ILiveRenderView *renderView = [frameDispatcher removeRenderViewFor:identifier srcType:QAVVIDEO_SRC_TYPE_SCREEN];
+                
             }
             break;
+                
             case QAV_EVENT_ID_ENDPOINT_HAS_MEDIA_FILE_VIDEO:
             {
-                ILiveFrameDispatcher *frameDispatcher = [[ILiveRoomManager getInstance] getFrameDispatcher];
-                ILiveRenderView *renderView = [frameDispatcher addRenderAt:CGRectZero forIdentifier:identifier srcType:QAVVIDEO_SRC_TYPE_MEDIA];
-                renderView.autoRotate = NO;
-                [self addRenderView:renderView];
-//                [self.view sendSubviewToBack:renderView];
+                [self addRenderView: identifier];
             }
             break;
+                
             case QAV_EVENT_ID_ENDPOINT_NO_MEDIA_FILE_VIDEO:
             {
-                // 移除渲染视图
-                ILiveFrameDispatcher *frameDispatcher = [[ILiveRoomManager getInstance] getFrameDispatcher];
-                ILiveRenderView *renderView = [frameDispatcher removeRenderViewFor:identifier srcType:QAVVIDEO_SRC_TYPE_MEDIA];
-                [self removeRenderView:renderView];
+                [self removeRenderView: identifier];
             }
             break;
+                
             default:
             break;
         }
     }
 }
 
-- (void) addRenderView: (ILiveRenderView *)renderView
+- (void) addRenderView: (NSString *)userId
 {
-    [_allStudentsRenderViews addObject:renderView];
+    CustomILiveView *renderView = [[CustomILiveView alloc] initWithFrame: CGRectMake(0, 0, 100, 100) and: userId];
+    
+    if([userId isEqualToString:_userId]){
+        [_allStudentsRenderViews insertObject:renderView atIndex:0];
+    } else {
+        [_allStudentsRenderViews addObject:renderView];
+    }
+    
     [_liveListContainer addSubview:renderView];
+    [renderView start];
+    
     [self onCameraNumChange];
 }
 
-- (void) removeRenderView: (ILiveRenderView *)renderView
+- (void) removeRenderView: (NSString *) userId
 {
-    [_allStudentsRenderViews removeObject:renderView];
-    [renderView removeFromSuperview];
+    for(int i=0; i<_allStudentsRenderViews.count; i++){
+        CustomILiveView *renderView = (CustomILiveView *) _allStudentsRenderViews[i];
+        if([userId isEqualToString:renderView.userId]){
+            [renderView removeFromSuperview];
+            [_allStudentsRenderViews removeObject: renderView];
+        }
+    }
     // 房间内上麦用户数量变化，重新布局渲染视图
     [self onCameraNumChange];
 }
 
+- (void) addAllStudentsRenderViews{
+    for(int i = 0; i< _allStudentsRenderViews.count; i++){
+        CustomILiveView *renderView = (CustomILiveView *) _allStudentsRenderViews[i];
+        [renderView start];
+    }
+    [self onCameraNumChange];
+}
+
+- (void) removeAllStudentsRenderViews{
+    for(int i = 0; i< _allStudentsRenderViews.count; i++){
+        CustomILiveView *renderView = (CustomILiveView *) _allStudentsRenderViews[i];
+        [renderView stop];
+    }
+}
+
+- (void) addSelfRenderView
+{
+    CustomILiveView *renderView = [[CustomILiveView alloc] initWithFrame:_AvSelfContainer.frame and:_userId];
+    
+    [_AvSelfContainer addSubview:renderView];
+    [renderView start];
+    
+    NSString *score = [_studentScore objectForKey:_userId];
+    [renderView setScoreWith:score == nil ? 0 : [score integerValue]];
+}
+
+- (void) removeSelfRenderView
+{
+    [[_AvSelfContainer subviews] makeObjectsPerformSelector:@selector(removeFromSuperview)];
+}
+
+- (void) addChatMessage: (NSString *) message from: (NSString *) userId
+{
+    NSDictionary *data = @{@"userId": userId, @"content": message};
+    [_chatContentList addObject:data];
+    
+    NSIndexPath *indexPath = [NSIndexPath indexPathForRow: _chatContentList.count-1 inSection:0];
+    [_ChatList insertRowsAtIndexPaths:@[indexPath]  withRowAnimation:UITableViewRowAnimationTop];
+    // 滚动到最后一行
+    [_ChatList scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionBottom animated:YES];
+}
 /**
  * 首帧到达回调
  */
@@ -357,8 +536,8 @@
  *  @param members 加入成员的identifier（NSString*）列表
  */
 -(void)onMemberJoin:(NSArray*)members {
-//    NSString *msgInfo = [NSString stringWithFormat:@"[%@] %@",members.firstObject, @"加入了房间"];
-//    self.chatView.text = [NSString stringWithFormat:@"%@\n%@",self.chatView.text, msgInfo];;
+    NSString *msgInfo = [NSString stringWithFormat:@"[%@] %@",members.firstObject, @"加入了房间"];
+    [self addChatMessage:msgInfo from:@"系统"];
 }
 
 /**
@@ -367,17 +546,126 @@
  *  @param members 退出成员的identifier（NSString*）列表
  */
 -(void)onMemberQuit:(NSArray*)members {
-//    NSString *msgInfo = [NSString stringWithFormat:@"[%@] %@",members.firstObject, @"退出了房间"];
-//    self.chatView.text = [NSString stringWithFormat:@"%@\n%@",self.chatView.text, msgInfo];;
+    NSString *msgInfo = [NSString stringWithFormat:@"[%@] %@",members.firstObject, @"退出了房间"];
+    [self addChatMessage:msgInfo from:@"系统"];
 }
 
 // 点击举手按钮
 - (IBAction)onHandButtonClick:(id)sender {
+  
     if(![_handButton.titleLabel.text isEqualToString: @"我要发言"]) return;
     
     [_handButton setTitle:@"等待老师同意..." forState:UIControlStateNormal];
     
     [self sendC2CMessageToTeacher:@"TIMCustomHand"];
+}
+
+// 点击折叠按钮
+- (IBAction)onCollapseButtonClick:(id)sender {
+    self.isShowStudents = !self.isShowStudents;
+    
+    if(self.isShowStudents){
+        self.LayoutLeftBottom.hidden = NO;
+        self.LayoutLeftTopBottomSpace.constant = MainBottomSpace;
+        self.AvSelfContainer.hidden = YES;
+        self.ChatContainer.hidden = NO;
+        [self addAllStudentsRenderViews];
+        [self removeSelfRenderView];
+    } else {
+        self.LayoutLeftBottom.hidden = YES;
+        self.LayoutLeftTopBottomSpace.constant = 0;
+        self.AvSelfContainer.hidden = NO;
+        self.ChatContainer.hidden = YES;
+        [self removeAllStudentsRenderViews];
+        [self addSelfRenderView];
+    }
+}
+
+
+- (void) initBoardAndMainRenderViews{
+    
+    [[_LeftTopViewContainer subviews] makeObjectsPerformSelector:@selector(removeFromSuperview)];
+    [[_MainRenderViewContaienr subviews] makeObjectsPerformSelector:@selector(removeFromSuperview)];
+    
+    
+    CGSize LeftTopViewSize = _LeftTopViewContainer.bounds.size;
+    CGSize RightTopViewSize = _MainRenderViewContaienr.bounds.size;
+    
+    
+    TXBoardView *boardView = [[TXBoardView alloc] initWithRoomID:_classID];
+    [self initBoardView: boardView];
+    
+    ILiveRenderView *renderView = [[ILiveRenderView alloc] init];
+    [self initMainRenderView: renderView];
+    
+    boardView.translatesAutoresizingMaskIntoConstraints = false;
+    renderView.translatesAutoresizingMaskIntoConstraints = false;
+    
+    if(self.isExchange){
+        
+        CGRect frame = CGRectMake(0, 0, LeftTopViewSize.width, LeftTopViewSize.height);
+        renderView.frame = frame;
+        
+        CGRect frame2 = CGRectMake(0, 0, RightTopViewSize.width, RightTopViewSize.height);
+        boardView.frame = frame2;
+        
+        [_LeftTopViewContainer insertSubview:renderView atIndex:0];
+        [_MainRenderViewContaienr insertSubview:boardView atIndex:0];
+        
+        // 添加约束
+        [self addCenterConstraint:renderView to:_LeftTopViewContainer];
+        [self addCenterConstraint:boardView to:_MainRenderViewContaienr];
+        [self addEqualSizeConstraint: renderView to:_LeftTopViewContainer];
+        [self addEqualSizeConstraint: boardView to:_MainRenderViewContaienr];
+        
+    } else {
+        
+        CGRect frame = CGRectMake(0, 0, RightTopViewSize.width, RightTopViewSize.height);
+        renderView.frame = frame;
+        
+        CGRect frame2 = CGRectMake(0, 0, LeftTopViewSize.width, LeftTopViewSize.height);
+        boardView.frame = frame2;
+    
+        [_LeftTopViewContainer insertSubview:boardView atIndex:0];
+        [_MainRenderViewContaienr insertSubview:renderView atIndex:0];
+        
+        // 添加约束
+        [self addCenterConstraint:renderView to:_MainRenderViewContaienr];
+        [self addCenterConstraint:boardView to:_LeftTopViewContainer];
+
+        [self addEqualSizeConstraint: renderView to:_MainRenderViewContaienr];
+        [self addEqualSizeConstraint: boardView to:_LeftTopViewContainer];
+
+    }
+    
+//    _toggleButton.layer.zPosition = 999;
+}
+
+- (IBAction)onToggleButtonClick:(id)sender {
+    
+    self.isExchange = !self.isExchange;
+    [self initBoardAndMainRenderViews];
+
+}
+
+- (void) addCenterConstraint: (UIView *) from to: (UIView *)to{
+    
+    [to addConstraint: [NSLayoutConstraint constraintWithItem:to attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:from attribute:NSLayoutAttributeCenterX multiplier:1 constant:0]];
+
+    [to addConstraint: [NSLayoutConstraint constraintWithItem:to attribute:NSLayoutAttributeCenterY relatedBy:NSLayoutRelationEqual toItem:from attribute:NSLayoutAttributeCenterY multiplier:1 constant:0]];
+    
+}
+
+- (void) addEqualSizeConstraint: (UIView *) from to: (UIView *)to{
+    
+    [to addConstraint: [NSLayoutConstraint constraintWithItem:to attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:from attribute:NSLayoutAttributeWidth multiplier:1 constant:0]];
+
+    [to addConstraint: [NSLayoutConstraint constraintWithItem:to attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:from attribute:NSLayoutAttributeHeight multiplier:1 constant:0]];
+    
+}
+
+- (void) addAspectConstraint: (UIView *) from to: (UIView *)to{
+    
 }
 
 /**
@@ -387,20 +675,89 @@
     [self quitRoom];
 }
 
-#pragma mark - Accessor
 
-- (void)initBoardView {
-    [_boardView initWithRoomID:_classID];
-    [_boardView setBrushModel:TXBoardBrushModelNone]; // 禁止学生端画画
+#pragma mark - TIMUserStatusListener
+- (void)onForceOffline {
+    [self quitRoom];
 }
 
-- (void) initMainRenderView{
-    [_mainRenderView setIdentifier:_teacherId];
-    [_mainRenderView setSrcType:QAVVIDEO_SRC_TYPE_CAMERA];
-    _mainRenderView.autoRotate = NO;
+
+#pragma mark - Accessor
+
+- (void)initBoardView: (TXBoardView *) boardView {
+    
+    [boardView setBrushModel:TXBoardBrushModelNone]; // 禁止学生端画画
+
+    // 调用TIC接口，添加白板视图，建立TICManager和白板视图的联系
+    [[TICManager sharedInstance] addBoardView: boardView andLoadHistoryData:^(int errCode, NSString *errMsg) {
+        if(errCode == 0)
+            NSLog(@"加载课堂历史数据完成");
+        else {
+            [self addChatMessage:@"发言已结束" from:@"系统"];
+            NSLog(@"加载课堂历史数据失败！！！！");
+        }
+    }];
+    
+    [NSThread sleepForTimeInterval:0.1];
+    
+}
+
+- (void) initMainRenderView: (ILiveRenderView *) renderView{
+//    [renderView init];
+    [renderView setIdentifier:_teacherId];
+    [renderView setSrcType:QAVVIDEO_SRC_TYPE_CAMERA];
+    renderView.autoRotate = NO;
     
     ILiveFrameDispatcher *frameDispatcher = [[ILiveRoomManager getInstance] getFrameDispatcher];
-    [frameDispatcher addRenderView:_mainRenderView];
+    [frameDispatcher addRenderView:renderView];
+}
+
+- (void) initChatView {
+    _ChatList.dataSource = self;
+    _ChatList.delegate = self;
+}
+
+- (NSInteger) tableView: (UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
+    int count = [_chatContentList count];
+    return count;
+}
+
+- (UITableViewCell *) tableView: (UITableView *) tableView cellForRowAtIndexPath:(nonnull NSIndexPath *)indexPath{
+    
+    NSString * cellID = @"cellID";
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:cellID];
+    
+    if(cell == nil){
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:cellID];
+        cell.selectionStyle = UITableViewCellSelectionStyleNone;
+        
+        CGSize listItemSize = tableView.frame.size;
+        
+        TicChatItemView *chatItem = [[TicChatItemView alloc] initWithFrame: CGRectMake(0, 0, listItemSize.width, 50)];
+        [cell.contentView addSubview:chatItem];
+        chatItem.tag = 998;
+        
+        NSDictionary *data = [_chatContentList objectAtIndex:indexPath.row];
+        NSString *userId = [data objectForKey:@"userId"];
+        NSString *content = [data objectForKey:@"content"];
+        
+        [chatItem setMessage:content from:userId];
+    }
+    
+    return cell;
+}
+
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    NSDictionary *data = [_chatContentList objectAtIndex:indexPath.row];
+    NSString *userId = [data objectForKey:@"userId"];
+    NSString *content = [data objectForKey:@"content"];
+    
+    CGSize listItemSize = tableView.frame.size;
+    CGSize contentSize = [TicChatItemView getRect:listItemSize.width userId:userId msg:content];
+    
+    return contentSize.height + 10;
 }
 
 - (void) changeToOrientation: (int) orientation
@@ -417,5 +774,57 @@
                                      forKey:@"orientation"];
 }
 
+
+//键盘将要弹出
+- (void)keyboardWillShow:(NSNotification *)notification
+{
+    //获取键盘高度 keyboardHeight
+    NSDictionary *userInfo = [notification userInfo];
+    NSValue *aValue = [userInfo objectForKey:UIKeyboardFrameEndUserInfoKey];
+    CGRect keyboardRect = [aValue CGRectValue];
+    CGFloat keyboardHeight = keyboardRect.size.height;
+    
+    _KeyboardContainerHeight.constant = keyboardHeight;
+    _MainContainerTop.constant = 54 - keyboardHeight;
+    
+    CGFloat duration = [userInfo[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+    [UIView animateWithDuration:duration animations:^{
+        [self.view layoutIfNeeded];
+    }];
+}
+
+- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
+{
+    //结束编辑
+    [self.view endEditing:YES];
+}
+
+- (IBAction)onPrimaryAction:(id)sender {
+    NSLog(@"onPrimaryAction");
+    NSString *text = [_ChatInput text];
+    _ChatInput.text = @"";
+    [self sendMessageToAll:text];
+}
+
+- (IBAction)onDidEnd:(id)sender {
+    NSLog(@"onDidEnd");
+}
+
+
+//键盘将要隐藏
+- (void)keyboardWillHide:(NSNotification *)notification{
+    
+//    self.baseView.center = self.view.center;
+    
+    NSDictionary *userInfo = [notification userInfo];
+    
+    _KeyboardContainerHeight.constant = 0;
+    _MainContainerTop.constant = 54;
+    
+    CGFloat duration = [userInfo[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+    [UIView animateWithDuration:duration animations:^{
+        [self.view layoutIfNeeded];
+    }];
+}
 
 @end
