@@ -31,6 +31,7 @@
     NSString *_classID;
     NSString *_teacherId;
     NSString *_userId;
+    NSString *_truename;
     CDVPlugin *_plugin;
 }
 
@@ -83,7 +84,7 @@
 
 @implementation ClassroomViewController
 
-- (instancetype)initWithClasssID:(NSString *)classId userId: (NSString *) userId teacherId: (NSString *) teacherId plugin: (CDVPlugin *)plugin
+- (instancetype)initWithClasssID:(NSString *)classId userId: (NSString *) userId truename: (NSString *)truename teacherId: (NSString *) teacherId userScores: (NSArray *) userScore plugin: (CDVPlugin *)plugin
 {
     self = [super init];
     self.isShowStudents = isIpad ? YES : NO;
@@ -96,10 +97,20 @@
         _classID = classId;
         _teacherId = teacherId;
         _userId = userId;
+        _truename = truename;
         _allStudentsRenderViews = [[NSMutableArray alloc] init];
         _chatContentList = [[NSMutableArray alloc] init];
         _studentScore = [[NSMutableDictionary alloc] init];
         _plugin = plugin;
+        
+        // 初始化学生分数
+        for(int i=0; i<[userScore count]; i++){
+            NSDictionary *data = userScore[i];
+            NSString *userId = [data objectForKey:@"userId"];
+            NSNumber *integral = [data objectForKey:@"integral"];
+            
+            [_studentScore setValue:integral forKey:userId];
+        }
     }
     
     return self;
@@ -112,34 +123,32 @@
     [self changeToOrientation: UIDeviceOrientationLandscapeLeft];
     [self.view setFrame:CGRectMake(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)];
     [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationNone];
-    
+
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillShow:) name:UIKeyboardWillShowNotification object:nil];
-    
+
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
-    
+//
     [[TICManager sharedInstance] setUserStatusListener:self];
     // ipad 下方学生视频要大些
     _LiveListHeight.constant = LiveBottomHeight;
     _LayoutLeftTopBottomSpace.constant = MainBottomSpace;
-    
+
     // UI设置
     [self initBoardAndMainRenderViews];
     [self initChatView];
-    
+
     // 打开摄像头
     [[TICManager sharedInstance] enableCamera:CameraPosFront enable:true succ:^{
         NSLog(@"启动摄像头成功");
     } failed:^(NSString *module, int errId, NSString *errMsg) {
         NSLog(@"启动摄像头失败");
     }];
-    
+
     // 关闭mic
     [self setMic:false];
-    [self showAnimate];
 }
 
 -(void)dealloc {
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
     
     // 强制竖屏
     [self changeToOrientation: UIDeviceOrientationPortrait];
@@ -163,6 +172,20 @@
 //    [self.navigationController popViewControllerAnimated:YES];
     [self removeFromParentViewController];
     [self.view removeFromSuperview];
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    [[TICManager sharedInstance] setUserStatusListener:nil];
+    
+//    [[NSNotificationCenter defaultCenter] removeObserver:self];
+//
+//    // 强制竖屏
+//    [self changeToOrientation: UIDeviceOrientationPortrait];
+//
+//    // 退出课堂
+//    [[TICManager sharedInstance] quitClassroomSucc:^{
+//        NSLog(@"退出房间成功");
+//    } failed:^(NSString *module, int errId, NSString *errMsg) {
+//        NSLog(@"退出房间失败：%d-%@", errId, errMsg);
+//    }];
 }
 
 - (IBAction)onQuitRoom:(id)sender {
@@ -251,7 +274,7 @@
         [self onTeacherC2CMessage:text];
     } else {
         NSDictionary *data = [self getMessageFromJson:text];
-        if(data != nil) [self showChatMessage:data];
+        if(data != nil) [self showChatMessage:data from: fromId];
     }
 }
 
@@ -282,27 +305,23 @@
         [self addChatMessage:@"发言已结束" from:@"系统"];
     } else {
         
-//        NSString *message2 = @"{\"type\":\"chat\",\"msg\":\"消息内容\",\"uid\":\"Android_trtc_04\",\"integral\":\"10\",\"addIntegral\":\"2\"}";
-        
-//            NSString *message2 = @"{\"type\":\"laud\",\"msg\":\"得到了积分\",\"uid\":\"iOS_trtc_01\",\"integral\":\"10\",\"addIntegral\":\"2\"}";
-        
         NSDictionary *data = [self getMessageFromJson:message];
-        if(data != nil) [self showChatMessage:data];
+        if(data != nil) [self showChatMessage:data from: _teacherId];
     }
 }
 
-- (void) showChatMessage: (NSDictionary *) data
+- (void) showChatMessage: (NSDictionary *) data from: (NSString *) from
 {
     NSString *type = [data objectForKey:@"type"];
     NSString *uid = [data objectForKey:@"uid"];
+    NSString *truename = [data objectForKey:@"truename"];
     NSString *text = [data objectForKey:@"msg"];
     NSString *integral = [data objectForKey:@"integral"];
     NSString *addIntegral = [data objectForKey:@"addIntegral"];
     
     if([type isEqualToString:@"chat"]){
-        [self addChatMessage:text from:uid];
+        [self addChatMessage:text from:truename];
     } else {
-//        NSString *message = [NSString stringWithFormat:@"%@获得了%@积分, 让我们为他鼓掌吧！！！, 让我们为他鼓掌吧！！！, 让我们为他鼓掌吧！！！, 让我们为他鼓掌吧！！！, 让我们为他鼓掌吧！！！", uid, addIntegral];
         [self addChatMessage:text from: @"系统"];
         [self addScoreForUser:uid integral: integral];
     }
@@ -351,12 +370,12 @@
 // 广播消息
 - (void) sendMessageToAll: (NSString *) message{
     
-    NSDictionary *data = @{@"type": @"chat" ,@"msg":message,@"uid":_userId,@"integral":@"",@"addIntegral":@""};
+    NSDictionary *data = @{@"type": @"chat" ,@"msg":message,@"uid":_userId , @"truename": _truename,@"integral":@"",@"addIntegral":@""};
     
     NSString *json = [self getJsonFromMessage:data];
     
     [[TICManager sharedInstance] sendTextMessage: json toUser:nil succ:^{
-        [self addChatMessage:message from: _userId];
+        [self addChatMessage:message from: _truename];
     } failed:^(NSString *module, int errId, NSString *errMsg) {
         NSLog(@"消息发送失败: %@", errMsg);
     }];
@@ -368,7 +387,9 @@
         return nil;
     }
     
-    NSData *jsonData = [jsonString dataUsingEncoding:NSUTF8StringEncoding];
+    NSString *replacedStr = [jsonString stringByReplacingOccurrencesOfString:@"&quot;"withString:@"\""];
+    
+    NSData *jsonData = [replacedStr dataUsingEncoding:NSUTF8StringEncoding];
     NSError *err;
     NSDictionary *dic = [NSJSONSerialization JSONObjectWithData:jsonData
                                                         options:NSJSONReadingMutableContainers
@@ -459,6 +480,9 @@
     [_liveListContainer addSubview:renderView];
     [renderView start];
     
+    NSNumber *score = [_studentScore objectForKey:userId];
+    [renderView setScoreWith:[score integerValue]];
+    
     [self onCameraNumChange];
 }
 
@@ -497,7 +521,7 @@
     [_AvSelfContainer addSubview:renderView];
     [renderView start];
     
-    NSString *score = [_studentScore objectForKey:_userId];
+    NSNumber *score = [_studentScore objectForKey:_userId];
     [renderView setScoreWith:score == nil ? 0 : [score integerValue]];
 }
 

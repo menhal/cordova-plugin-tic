@@ -11,29 +11,6 @@
 
 - (void) init:(CDVInvokedUrlCommand*)command
 {
-//    ClassroomViewController *classroomVC = [[ClassroomViewController alloc] initWithClasssID:@"" userId:@"" teacherId: @"" plugin: self];
-//    UIViewController *rootViewController = [[UIApplication sharedApplication] keyWindow].rootViewController;
-//
-//    UIView *rootView = rootViewController.view ;
-//
-//    [rootViewController addChildViewController:classroomVC];
-//    [rootView addSubview:classroomVC.view];
-    
-//    UIViewController *rootViewController = [[UIApplication sharedApplication] keyWindow].rootViewController;
-//    UIView *rootView = rootViewController.view ;
-// 
-////    UIImage *image = [YYImage imageNamed:@"Fireworks"];
-//    
-//    UIImage *image = [YYImage imageNamed:@"Fireworks.gif"];
-//    YYAnimatedImageView *imageView = [[YYAnimatedImageView alloc] initWithImage:image];
-//    
-//    imageView.frame = CGRectMake(0, 0, 300, 200);
-//    [rootView addSubview:imageView];
-//    
-//    return;
-    
-    
-//    NSLog(@"初始化插件");
     NSString *sdkappid = [command.arguments objectAtIndex:0];
     int result = [[TICManager sharedInstance] initSDK: sdkappid];
     NSLog(@"初始化插件%d", result);
@@ -53,7 +30,6 @@
         NSLog(@"登录成功！");
         [self joinRoom: roomId args: args];
     } failed:^(NSString *module, int errId, NSString *errMsg) {
-//        NSLog(@"登录失败：%@", errMsg);
         [self showErrorMessage: errId errMsg: errMsg];
     }];
     
@@ -69,8 +45,10 @@
     NSString *teacherId = [args valueForKey:@"teacherId"];
     NSString *role = [args valueForKey:@"role"];
     NSString *userName = [args valueForKey:@"userName"];
+    NSString *truename = [args valueForKey:@"truename"];
+    NSArray *userScores = [args valueForKey:@"userScores"];
     
-    ClassroomViewController *classroomVC = [[ClassroomViewController alloc] initWithClasssID:inputRoomID userId:userName teacherId: teacherId plugin: self];
+    ClassroomViewController *classroomVC = [[ClassroomViewController alloc] initWithClasssID:inputRoomID userId:userName truename:truename teacherId: teacherId userScores: userScores plugin: self];
   
     
     [[TICManager sharedInstance] joinClassroomWithOption:^TICClassroomOption *(TICClassroomOption *option) {
