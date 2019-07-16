@@ -6,7 +6,9 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.media.Image;
 import android.os.Build;
+import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -18,6 +20,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -41,8 +44,10 @@ import org.apache.cordova.CordovaArgs;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.LOG;
 import org.apache.cordova.PluginResult;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.Dictionary;
@@ -79,15 +84,19 @@ public class Tic extends CordovaPlugin implements IClassEventListener, TicMessag
     private ScrollView chatScrollView = null; // 聊天滚动区
     private EditText editText = null; // 输入框
     private ViewGroup av_self_view_container = null;
+    private TextView titleView = null; // 页面标题
+    private ImageView animate = null; // 动画
 
     private int roomId = 0;
     private String teacherId = "";
     private String userId = "";
     private String userSig = "";
+    private String truename = "";
     private String role = "";
     private CallbackContext callbackContext = null;
     private TicMessageHandler messageHandler = null;
     private JSONObject userScores = new JSONObject();
+    private String roomName = "";
 
     @Override
     protected void pluginInitialize() {
@@ -126,6 +135,25 @@ public class Tic extends CordovaPlugin implements IClassEventListener, TicMessag
     }
 
 
+    private void initScores(JSONArray scoreList){
+
+        for(int i=0; i<scoreList.length(); i++){
+
+            try{
+                JSONObject data = scoreList.getJSONObject(i);
+                String userId = data.optString("userId");
+                int integral = data.optInt("integral");
+
+                userScores.put(userId, integral);
+            } catch (JSONException e){
+                log(e.getMessage());
+            }
+
+        }
+
+    }
+
+
     private void join(JSONObject options){
         if(isRunning) return;
 
@@ -134,6 +162,9 @@ public class Tic extends CordovaPlugin implements IClassEventListener, TicMessag
         roomId = options.optInt("roomId");
         role = options.optString("role");
         teacherId = options.optString("teacherId");
+        truename = options.optString("truename");
+        roomName = options.optString("roomName");
+        initScores(options.optJSONArray("userScores"));
 
         this.login(userId, userSig);
         isRunning = true;
@@ -259,13 +290,18 @@ public class Tic extends CordovaPlugin implements IClassEventListener, TicMessag
         MessageContainer = (LinearLayout) findViewById("MessageContainer");
         chatScrollView = (ScrollView) findViewById("ChatScrollView"); // 聊天滚动区
         editText = (EditText) findViewById("editText"); // 输入框
+        animate = (ImageView) findViewById("animate"); // 动画
         av_self_view_container =  (ViewGroup) findViewById("av_self_view_container"); // 本人视频
+        titleView = (TextView) findViewById("title"); //
         av_self_view = new TicLiveView(activity);
         av_self_view.initViews();
         av_self_view_container.addView(av_self_view);
 
         FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         av_self_view.setLayoutParams(lp);
+
+
+        titleView.setText(roomName);
 
         // 关闭对话框事件
         mainDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
@@ -337,8 +373,8 @@ public class Tic extends CordovaPlugin implements IClassEventListener, TicMessag
                     if (event == null || !event.isShiftPressed()) {
                         // the user is done typing.
                         String message = editText.getText().toString();
-                        messageHandler.sendBroadcast(message, userId);
-                        showMessage(userId, message);
+                        messageHandler.sendBroadcast(message, userId, truename);
+                        showMessage(truename, message);
                         editText.setText("");
                         return false; // consume.
                     }
@@ -453,7 +489,10 @@ public class Tic extends CordovaPlugin implements IClassEventListener, TicMessag
 
 
     private void renderSelfVideo(){
+        int score = userScores.optInt(userId, 0);
+
         av_self_view.render(userId);
+        av_self_view.setScore(score);
     }
 
     private void stopSelfVideo(){
@@ -614,6 +653,7 @@ public class Tic extends CordovaPlugin implements IClassEventListener, TicMessag
 
         try{
             userScores.put(userId, integral);
+//            animate.setVisibility(View.VISIBLE);
 
         } catch (JSONException e){
 
@@ -634,6 +674,7 @@ public class Tic extends CordovaPlugin implements IClassEventListener, TicMessag
 
             if(video.userId.equals(userId)) {
                 video.setScore(score);
+                if(userId.equals(this.userId)) av_self_view.setScore(score);
             }
         }
     }

@@ -36,10 +36,10 @@ public class TicMessageHandler implements IClassroomIMListener{
         });
     }
 
-    public void sendBroadcast(String message, String userId){
+    public void sendBroadcast(String message, String userId, String truename){
         if("".equals(message)) return;
 
-        String jsonString = this.toJson("chat", message, userId);
+        String jsonString = this.toJson("chat", message, userId, truename);
 
         TICManager.getInstance().sendTextMessage(null, jsonString, new ILiveCallBack() {
             @Override
@@ -68,23 +68,34 @@ public class TicMessageHandler implements IClassroomIMListener{
 
         } else {
 
-            JSONObject message = this.getJsonObject(text);
+            try{
 
-            String msgType = message.optString("type");
-            String uid = message.optString("uid");
-            String msg = message.optString("msg");
-            String integral = message.optString("integral");
-            String addIntegral = message.optString("addIntegral");
+                text = text.replace("&quot;", "\"");
+                JSONObject message = this.getJsonObject(text);
 
-            if(msgType.equals("laud")){
+                String msgType = message.optString("type");
+                String uid = message.optString("uid");
+                String msg = message.optString("msg");
+                String integral = message.optString("integral");
+                String addIntegral = message.optString("addIntegral");
+                String truename = message.optString("truename");
 
-                listener.onScore(uid, Integer.parseInt(integral), Integer.parseInt(addIntegral), msg);
+                if(msgType.equals("laud")){
 
-            } else {
+                    listener.onScore(uid, Integer.parseInt(integral), Integer.parseInt(addIntegral), msg);
+                    listener.onBroadcast(truename, msg);
 
-                listener.onBroadcast(fromUserId, text);
+                } else {
 
+                    listener.onBroadcast(truename, msg);
+
+                }
+
+            } catch (Exception e){
+
+                LOG.e("Tic", e.getMessage());
             }
+
         }
     }
 
@@ -114,7 +125,7 @@ public class TicMessageHandler implements IClassroomIMListener{
 
     }
 
-    private String toJson(String type, String msg, String userId){
+    private String toJson(String type, String msg, String userId, String truename){
 
 
         try{
@@ -124,6 +135,7 @@ public class TicMessageHandler implements IClassroomIMListener{
             jsonObject.put("uid", userId);
             jsonObject.put("integral", "");
             jsonObject.put("addIntegral", "");
+            jsonObject.put("truename", truename);
 
             return jsonObject.toString();
 
