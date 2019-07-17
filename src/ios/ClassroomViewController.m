@@ -783,18 +783,22 @@
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:cellID];
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
         
-        CGSize listItemSize = tableView.frame.size;
         
-        TicChatItemView *chatItem = [[TicChatItemView alloc] initWithFrame: CGRectMake(0, 0, listItemSize.width, 50)];
-        [cell.contentView addSubview:chatItem];
-        chatItem.tag = 998;
         
-        NSDictionary *data = [_chatContentList objectAtIndex:indexPath.row];
-        NSString *userId = [data objectForKey:@"userId"];
-        NSString *content = [data objectForKey:@"content"];
         
-        [chatItem setMessage:content from:userId];
     }
+    
+    CGSize listItemSize = tableView.frame.size;
+    
+    TicChatItemView *chatItem = [[TicChatItemView alloc] initWithFrame: CGRectMake(0, 0, listItemSize.width, 50)];
+    [cell.contentView addSubview:chatItem];
+    chatItem.tag = 998;
+    
+    NSDictionary *data = [_chatContentList objectAtIndex:indexPath.row];
+    NSString *userId = [data objectForKey:@"userId"];
+    NSString *content = [data objectForKey:@"content"];
+    
+    [chatItem setMessage:content from:userId];
     
     return cell;
 }
