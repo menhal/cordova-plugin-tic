@@ -45,7 +45,7 @@
     
     _renderView.autoRotate = YES;
     
-    _renderView.frame = self.frame;
+    _renderView.frame = CGRectMake(0, 0, self.frame.size.width, self.frame.size.height);
     
     [self addSubview:_renderView];
     
@@ -77,15 +77,15 @@
 
 - (void) addPostionConstraint{
     
-    [self addConstraint: [NSLayoutConstraint constraintWithItem:self attribute:NSLayoutAttributeRight relatedBy:NSLayoutRelationEqual toItem:_scoreView attribute:NSLayoutAttributeRight multiplier:1 constant:0]];
-    
-    [self addConstraint: [NSLayoutConstraint constraintWithItem:self attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:_scoreView attribute:NSLayoutAttributeTop multiplier:1 constant:10]];
-    
-//    [_scoreView addConstraint: [NSLayoutConstraint constraintWithItem:_scoreView attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:70]];
-    
-    [_scoreView addConstraint: [NSLayoutConstraint constraintWithItem:_scoreView attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeWidth multiplier:1 constant: 50]];
-    
-    [_scoreView addConstraint: [NSLayoutConstraint constraintWithItem:_scoreView attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeHeight multiplier:1 constant: 30]];
+//    [self addConstraint: [NSLayoutConstraint constraintWithItem:self attribute:NSLayoutAttributeRight relatedBy:NSLayoutRelationEqual toItem:_scoreView attribute:NSLayoutAttributeRight multiplier:1 constant:0]];
+//    
+//    [self addConstraint: [NSLayoutConstraint constraintWithItem:self attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:_scoreView attribute:NSLayoutAttributeTop multiplier:1 constant:10]];
+//    
+////    [_scoreView addConstraint: [NSLayoutConstraint constraintWithItem:_scoreView attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:70]];
+//    
+//    [_scoreView addConstraint: [NSLayoutConstraint constraintWithItem:_scoreView attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeWidth multiplier:1 constant: 50]];
+//    
+//    [_scoreView addConstraint: [NSLayoutConstraint constraintWithItem:_scoreView attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeHeight multiplier:1 constant: 30]];
 }
 
 

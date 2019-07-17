@@ -64,6 +64,8 @@
 
 @property (weak, nonatomic) IBOutlet UIButton *toggleButton;
 
+@property (weak, nonatomic) IBOutlet UIButton *collapseButton;
+
 @property (weak, nonatomic) IBOutlet UITableView *ChatList;
 
 @property (weak, nonatomic) IBOutlet UITextField *ChatInput;
@@ -87,7 +89,8 @@
 - (instancetype)initWithClasssID:(NSString *)classId userId: (NSString *) userId truename: (NSString *)truename teacherId: (NSString *) teacherId userScores: (NSArray *) userScore plugin: (CDVPlugin *)plugin
 {
     self = [super init];
-    self.isShowStudents = isIpad ? YES : NO;
+//    self.isShowStudents = isIpad ? YES : NO;
+    self.isShowStudents = YES;
     self.isExchange = NO;
     
     if (self) {
@@ -132,11 +135,17 @@
     // ipad 下方学生视频要大些
     _LiveListHeight.constant = LiveBottomHeight;
     _LayoutLeftTopBottomSpace.constant = MainBottomSpace;
+    [self.view layoutIfNeeded];
 
     // UI设置
-    [self initBoardAndMainRenderViews];
+    
+    [self initCollapseState];
     [self initChatView];
-
+    
+    [self printSize];
+    
+    [self.view layoutIfNeeded];
+    [self initBoardAndMainRenderViews];
     // 打开摄像头
     [[TICManager sharedInstance] enableCamera:CameraPosFront enable:true succ:^{
         NSLog(@"启动摄像头成功");
@@ -146,6 +155,12 @@
 
     // 关闭mic
     [self setMic:false];
+    [self printSize];
+}
+
+- (void) printSize{
+    
+    NSLog(@"printSize:%f", _MainRenderViewContaienr.frame.size.height);
 }
 
 -(void)dealloc {
@@ -516,7 +531,7 @@
 
 - (void) addSelfRenderView
 {
-    CustomILiveView *renderView = [[CustomILiveView alloc] initWithFrame:_AvSelfContainer.frame and:_userId];
+    CustomILiveView *renderView = [[CustomILiveView alloc] initWithFrame:CGRectMake(0, 0, _AvSelfContainer.frame.size.width, _AvSelfContainer.frame.size.height) and:_userId];
     
     [_AvSelfContainer addSubview:renderView];
     [renderView start];
@@ -587,6 +602,11 @@
 // 点击折叠按钮
 - (IBAction)onCollapseButtonClick:(id)sender {
     self.isShowStudents = !self.isShowStudents;
+    [self initCollapseState];
+}
+
+
+- (void) initCollapseState{
     
     if(self.isShowStudents){
         self.LayoutLeftBottom.hidden = NO;
@@ -595,6 +615,7 @@
         self.ChatContainer.hidden = NO;
         [self addAllStudentsRenderViews];
         [self removeSelfRenderView];
+        
     } else {
         self.LayoutLeftBottom.hidden = YES;
         self.LayoutLeftTopBottomSpace.constant = 0;
@@ -603,18 +624,19 @@
         [self removeAllStudentsRenderViews];
         [self addSelfRenderView];
     }
+    
+    NSString *text = self.isShowStudents ? @"收起" : @"展开";
+    [_collapseButton setTitle: text forState: UIControlStateNormal];
+    [self.view layoutIfNeeded];
+    
+    [self addEqualSizeConstraint: _MainRenderViewContaienr ratio: self.isExchange ? 0.65 : 0.75];
+    [self addEqualSizeConstraint: _LeftTopViewContainer ratio: self.isExchange ? 0.75 : 0.65];
 }
-
 
 - (void) initBoardAndMainRenderViews{
     
     [[_LeftTopViewContainer subviews] makeObjectsPerformSelector:@selector(removeFromSuperview)];
     [[_MainRenderViewContaienr subviews] makeObjectsPerformSelector:@selector(removeFromSuperview)];
-    
-    
-    CGSize LeftTopViewSize = _LeftTopViewContainer.bounds.size;
-    CGSize RightTopViewSize = _MainRenderViewContaienr.bounds.size;
-    
     
     TXBoardView *boardView = [[TXBoardView alloc] initWithRoomID:_classID];
     [self initBoardView: boardView];
@@ -626,41 +648,22 @@
     renderView.translatesAutoresizingMaskIntoConstraints = false;
     
     if(self.isExchange){
-        
-        CGRect frame = CGRectMake(0, 0, LeftTopViewSize.width, LeftTopViewSize.height);
-        renderView.frame = frame;
-        
-        CGRect frame2 = CGRectMake(0, 0, RightTopViewSize.width, RightTopViewSize.height);
-        boardView.frame = frame2;
-        
+
         [_LeftTopViewContainer insertSubview:renderView atIndex:0];
         [_MainRenderViewContaienr insertSubview:boardView atIndex:0];
         
-        // 添加约束
-        [self addCenterConstraint:renderView to:_LeftTopViewContainer];
-        [self addCenterConstraint:boardView to:_MainRenderViewContaienr];
-        [self addEqualSizeConstraint: renderView to:_LeftTopViewContainer];
-        [self addEqualSizeConstraint: boardView to:_MainRenderViewContaienr];
-        
+        [self addEqualSizeConstraint: _MainRenderViewContaienr ratio:0.65];
+        [self addEqualSizeConstraint: _LeftTopViewContainer ratio:0.75];
+
     } else {
-        
-        CGRect frame = CGRectMake(0, 0, RightTopViewSize.width, RightTopViewSize.height);
-        renderView.frame = frame;
-        
-        CGRect frame2 = CGRectMake(0, 0, LeftTopViewSize.width, LeftTopViewSize.height);
-        boardView.frame = frame2;
-    
+
         [_LeftTopViewContainer insertSubview:boardView atIndex:0];
         [_MainRenderViewContaienr insertSubview:renderView atIndex:0];
         
-        // 添加约束
-        [self addCenterConstraint:renderView to:_MainRenderViewContaienr];
-        [self addCenterConstraint:boardView to:_LeftTopViewContainer];
-
-        [self addEqualSizeConstraint: renderView to:_MainRenderViewContaienr];
-        [self addEqualSizeConstraint: boardView to:_LeftTopViewContainer];
-
+        [self addEqualSizeConstraint: _MainRenderViewContaienr ratio:0.75];
+        [self addEqualSizeConstraint: _LeftTopViewContainer ratio:0.56];
     }
+    
     
 //    _toggleButton.layer.zPosition = 999;
 }
@@ -669,22 +672,47 @@
     
     self.isExchange = !self.isExchange;
     [self initBoardAndMainRenderViews];
-
+    [self printSize];
 }
 
 - (void) addCenterConstraint: (UIView *) from to: (UIView *)to{
     
-    [to addConstraint: [NSLayoutConstraint constraintWithItem:to attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:from attribute:NSLayoutAttributeCenterX multiplier:1 constant:0]];
-
-    [to addConstraint: [NSLayoutConstraint constraintWithItem:to attribute:NSLayoutAttributeCenterY relatedBy:NSLayoutRelationEqual toItem:from attribute:NSLayoutAttributeCenterY multiplier:1 constant:0]];
+//    [to addConstraint: [NSLayoutConstraint constraintWithItem:to attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:from attribute:NSLayoutAttributeCenterX multiplier:1 constant:0]];
+//
+//    [to addConstraint: [NSLayoutConstraint constraintWithItem:to attribute:NSLayoutAttributeCenterY relatedBy:NSLayoutRelationEqual toItem:from attribute:NSLayoutAttributeCenterY multiplier:1 constant:0]];
     
 }
 
-- (void) addEqualSizeConstraint: (UIView *) from to: (UIView *)to{
+- (void) addEqualSizeConstraint: (UIView *)to ratio: (CGFloat) ratio{
     
-    [to addConstraint: [NSLayoutConstraint constraintWithItem:to attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:from attribute:NSLayoutAttributeWidth multiplier:1 constant:0]];
-
-    [to addConstraint: [NSLayoutConstraint constraintWithItem:to attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:from attribute:NSLayoutAttributeHeight multiplier:1 constant:0]];
+//    [to addConstraint: [NSLayoutConstraint constraintWithItem:to attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:from attribute:NSLayoutAttributeWidth multiplier:1 constant:0]];
+//
+//    [to addConstraint: [NSLayoutConstraint constraintWithItem:to attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:from attribute:NSLayoutAttributeHeight multiplier:1 constant:0]];
+    
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        
+        
+        if([to.subviews count] == 0) return;
+        UIView *from = to.subviews[0];
+        
+        CGSize containerSize = to.frame.size;
+        
+        //过扁
+        if((containerSize.height / containerSize.width) > ratio) {
+            CGFloat height = containerSize.width * ratio;
+            CGFloat top = (containerSize.height - height) / 2;
+            from.frame = CGRectMake(0, top, containerSize.width, height);
+        } else {
+            CGFloat width = containerSize.height / ratio;
+            CGFloat left = (containerSize.width - width) / 2;
+            from.frame = CGRectMake(left, 0, width, containerSize.height);
+        }
+        
+        
+        [from clipsToBounds];
+        
+    });
+    
     
 }
 

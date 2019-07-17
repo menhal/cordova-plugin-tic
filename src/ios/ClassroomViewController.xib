@@ -27,6 +27,7 @@
                 <outlet property="MainRenderViewContaienr" destination="5FC-Lv-qHR" id="NVO-XA-S9W"/>
                 <outlet property="RightTopViewContainer" destination="MGg-sX-buR" id="KkN-o5-po1"/>
                 <outlet property="boardView" destination="Knf-FK-Jxc" id="zYU-bF-zUY"/>
+                <outlet property="collapseButton" destination="Q9p-A8-9or" id="QAB-6A-1Xq"/>
                 <outlet property="handButton" destination="eQy-1p-Fl7" id="5CL-HV-ydJ"/>
                 <outlet property="liveListContainer" destination="96i-6P-X9I" id="vW4-x0-MAP"/>
                 <outlet property="toggleButton" destination="LAC-8k-Imo" id="gde-h3-nyM"/>
@@ -56,7 +57,7 @@
                                             <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                         </view>
                                     </subviews>
-                                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                    <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                     <constraints>
                                         <constraint firstItem="Knf-FK-Jxc" firstAttribute="centerY" secondItem="MXq-8Z-lJC" secondAttribute="centerY" id="VBm-iT-T1J"/>
                                         <constraint firstItem="Knf-FK-Jxc" firstAttribute="centerX" secondItem="MXq-8Z-lJC" secondAttribute="centerX" id="Zqq-G3-bSW"/>
@@ -118,7 +119,7 @@
                                     <subviews>
                                         <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="5FC-Lv-qHR" userLabel="MainRenderViewContainer">
                                             <rect key="frame" x="0.0" y="0.0" width="200" height="317"/>
-                                            <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                            <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                         </view>
                                         <button opaque="NO" contentMode="scaleAspectFit" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="LAC-8k-Imo" userLabel="ToggleButton">
                                             <rect key="frame" x="170" y="0.0" width="30" height="30"/>
