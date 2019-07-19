@@ -345,7 +345,7 @@
         [self addChatMessage:text from:truename];
     } else {
         [self addChatMessage:text from: @"系统"];
-        [self addScoreForUser:uid integral: integral];
+        [self addScoreForUser:truename integral: integral];
     }
 }
 
@@ -582,8 +582,8 @@
  *  @param members 加入成员的identifier（NSString*）列表
  */
 -(void)onMemberJoin:(NSArray*)members {
-    NSString *msgInfo = [NSString stringWithFormat:@"[%@] %@",members.firstObject, @"加入了房间"];
-    [self addChatMessage:msgInfo from:@"系统"];
+    // NSString *msgInfo = [NSString stringWithFormat:@"[%@] %@",members.firstObject, @"加入了房间"];
+    // [self addChatMessage:msgInfo from:@"系统"];
 }
 
 /**
@@ -592,8 +592,8 @@
  *  @param members 退出成员的identifier（NSString*）列表
  */
 -(void)onMemberQuit:(NSArray*)members {
-    NSString *msgInfo = [NSString stringWithFormat:@"[%@] %@",members.firstObject, @"退出了房间"];
-    [self addChatMessage:msgInfo from:@"系统"];
+    // NSString *msgInfo = [NSString stringWithFormat:@"[%@] %@",members.firstObject, @"退出了房间"];
+    // [self addChatMessage:msgInfo from:@"系统"];
 }
 
 // 点击举手按钮

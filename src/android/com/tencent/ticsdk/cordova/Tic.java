@@ -605,7 +605,7 @@ public class Tic extends CordovaPlugin implements IClassEventListener, TicMessag
             if(newUserId.equals(teacherId)) continue;
             if(newUserId.equals(userId)) continue;
             renderUserVideo(newUserId);
-            showMessage("群消息提示", newUserId+"进入房间");
+            // showMessage("群消息提示", newUserId+"进入房间");
         }
     }
 
@@ -617,7 +617,7 @@ public class Tic extends CordovaPlugin implements IClassEventListener, TicMessag
             if(quitUserId.equals(teacherId)) continue;
             if(quitUserId.equals(userId)) continue;
             removeUserVideo(quitUserId);
-            showMessage("群消息提示", quitUserId+"退出了房间");
+            // showMessage("群消息提示", quitUserId+"退出了房间");
         }
     }
 
