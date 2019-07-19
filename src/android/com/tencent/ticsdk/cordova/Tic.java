@@ -653,7 +653,7 @@ public class Tic extends CordovaPlugin implements IClassEventListener, TicMessag
 
         try{
             userScores.put(userId, integral);
-//            animate.setVisibility(View.VISIBLE);
+            animate.setVisibility(View.VISIBLE);
 
 			new Handler().postDelayed(new Runnable() {
                 @Override
