@@ -32,6 +32,7 @@
     NSString *_teacherId;
     NSString *_userId;
     NSString *_truename;
+    NSString *_roomName;
     CDVPlugin *_plugin;
 }
 
@@ -82,11 +83,13 @@
 
 @property (weak, nonatomic) IBOutlet YYAnimatedImageView *GifPlayer;
 
+@property (weak, nonatomic) IBOutlet UILabel *RoomTitle;
+
 @end
 
 @implementation ClassroomViewController
 
-- (instancetype)initWithClasssID:(NSString *)classId userId: (NSString *) userId truename: (NSString *)truename teacherId: (NSString *) teacherId userScores: (NSArray *) userScore plugin: (CDVPlugin *)plugin
+- (instancetype)initWithClasssID:(NSString *)classId userId: (NSString *) userId truename: (NSString *)truename teacherId: (NSString *) teacherId userScores: (NSArray *) userScore roomName:(NSString *)roomName plugin: (CDVPlugin *)plugin
 {
     self = [super init];
 //    self.isShowStudents = isIpad ? YES : NO;
@@ -101,6 +104,7 @@
         _teacherId = teacherId;
         _userId = userId;
         _truename = truename;
+        _roomName = roomName;
         _allStudentsRenderViews = [[NSMutableArray alloc] init];
         _chatContentList = [[NSMutableArray alloc] init];
         _studentScore = [[NSMutableDictionary alloc] init];
@@ -130,6 +134,9 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillShow:) name:UIKeyboardWillShowNotification object:nil];
 
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
+    
+    
+    [_RoomTitle setText:_roomName];
 //
     [[TICManager sharedInstance] setUserStatusListener:self];
     // ipad 下方学生视频要大些
@@ -591,6 +598,17 @@
 
 // 点击举手按钮
 - (IBAction)onHandButtonClick:(id)sender {
+    
+//    TXBoardView *boardView = (TXBoardView *)_LeftTopViewContainer.subviews[0];
+//
+//    [[TICManager sharedInstance] addBoardView: boardView andLoadHistoryData:^(int errCode, NSString *errMsg) {
+//        if(errCode == 0)
+//        NSLog(@"加载课堂历史数据完成");
+//        else {
+//            [self addChatMessage:@"加载课堂历史数据失败" from:@"系统"];
+//            NSLog(@"加载课堂历史数据失败！！！！");
+//        }
+//    }];
   
     if(![_handButton.titleLabel.text isEqualToString: @"我要发言"]) return;
     
@@ -638,31 +656,47 @@
     [[_LeftTopViewContainer subviews] makeObjectsPerformSelector:@selector(removeFromSuperview)];
     [[_MainRenderViewContaienr subviews] makeObjectsPerformSelector:@selector(removeFromSuperview)];
     
-    TXBoardView *boardView = [[TXBoardView alloc] initWithRoomID:_classID];
-    [self initBoardView: boardView];
-    
-    ILiveRenderView *renderView = [[ILiveRenderView alloc] init];
-    [self initMainRenderView: renderView];
-    
-    boardView.translatesAutoresizingMaskIntoConstraints = false;
-    renderView.translatesAutoresizingMaskIntoConstraints = false;
-    
-    if(self.isExchange){
-
-        [_LeftTopViewContainer insertSubview:renderView atIndex:0];
-        [_MainRenderViewContaienr insertSubview:boardView atIndex:0];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         
-        [self addEqualSizeConstraint: _MainRenderViewContaienr ratio:0.65];
-        [self addEqualSizeConstraint: _LeftTopViewContainer ratio:0.75];
-
-    } else {
-
-        [_LeftTopViewContainer insertSubview:boardView atIndex:0];
-        [_MainRenderViewContaienr insertSubview:renderView atIndex:0];
         
-        [self addEqualSizeConstraint: _MainRenderViewContaienr ratio:0.75];
-        [self addEqualSizeConstraint: _LeftTopViewContainer ratio:0.56];
-    }
+        TXBoardView *boardView = [[TXBoardView alloc] initWithRoomID:_classID];
+        
+        
+        [boardView getBoardData:^{
+            NSLog(@"");
+        } failed:^(int errCode, NSString *errMsg) {
+            NSLog(@"111%@", errMsg);
+        }];
+        
+        [self initBoardView: boardView];
+        
+        ILiveRenderView *renderView = [[ILiveRenderView alloc] init];
+        [self initMainRenderView: renderView];
+        
+        boardView.translatesAutoresizingMaskIntoConstraints = false;
+        renderView.translatesAutoresizingMaskIntoConstraints = false;
+        
+        if(self.isExchange){
+            
+            [_LeftTopViewContainer insertSubview:renderView atIndex:0];
+            [_MainRenderViewContaienr insertSubview:boardView atIndex:0];
+            
+            [self addEqualSizeConstraint: _MainRenderViewContaienr ratio:0.65];
+            [self addEqualSizeConstraint: _LeftTopViewContainer ratio:0.75];
+            
+        } else {
+            
+            [_LeftTopViewContainer insertSubview:boardView atIndex:0];
+            [_MainRenderViewContaienr insertSubview:renderView atIndex:0];
+            
+            [self addEqualSizeConstraint: _MainRenderViewContaienr ratio:0.75];
+            [self addEqualSizeConstraint: _LeftTopViewContainer ratio:0.56];
+        }
+        
+    });
+    
+    
+    
     
     
 //    _toggleButton.layer.zPosition = 999;
@@ -739,13 +773,15 @@
 - (void)initBoardView: (TXBoardView *) boardView {
     
     [boardView setBrushModel:TXBoardBrushModelNone]; // 禁止学生端画画
+    
+    [TXBoardSDK enableConsoleLog:YES];
 
     // 调用TIC接口，添加白板视图，建立TICManager和白板视图的联系
     [[TICManager sharedInstance] addBoardView: boardView andLoadHistoryData:^(int errCode, NSString *errMsg) {
         if(errCode == 0)
-            NSLog(@"加载课堂历史数据完成");
+        NSLog(@"加载课堂历史数据完成");
         else {
-            [self addChatMessage:@"发言已结束" from:@"系统"];
+            [self addChatMessage:@"加载课堂历史数据失败" from:@"系统"];
             NSLog(@"加载课堂历史数据失败！！！！");
         }
     }];

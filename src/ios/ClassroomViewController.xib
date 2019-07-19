@@ -26,6 +26,7 @@
                 <outlet property="MainContainerTop" destination="Fsw-sN-0Pq" id="f1C-UL-7jL"/>
                 <outlet property="MainRenderViewContaienr" destination="5FC-Lv-qHR" id="NVO-XA-S9W"/>
                 <outlet property="RightTopViewContainer" destination="MGg-sX-buR" id="KkN-o5-po1"/>
+                <outlet property="RoomTitle" destination="bf1-iY-k6L" id="joc-Ds-GTo"/>
                 <outlet property="boardView" destination="Knf-FK-Jxc" id="zYU-bF-zUY"/>
                 <outlet property="collapseButton" destination="Q9p-A8-9or" id="QAB-6A-1Xq"/>
                 <outlet property="handButton" destination="eQy-1p-Fl7" id="5CL-HV-ydJ"/>

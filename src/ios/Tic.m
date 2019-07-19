@@ -46,9 +46,10 @@
     NSString *role = [args valueForKey:@"role"];
     NSString *userName = [args valueForKey:@"userName"];
     NSString *truename = [args valueForKey:@"truename"];
+    NSString *roomName = [args valueForKey:@"roomName"];
     NSArray *userScores = [args valueForKey:@"userScores"];
     
-    ClassroomViewController *classroomVC = [[ClassroomViewController alloc] initWithClasssID:inputRoomID userId:userName truename:truename teacherId: teacherId userScores: userScores plugin: self];
+    ClassroomViewController *classroomVC = [[ClassroomViewController alloc] initWithClasssID:inputRoomID userId:userName truename:truename teacherId: teacherId userScores: userScores roomName:roomName plugin: self];
   
     
     [[TICManager sharedInstance] joinClassroomWithOption:^TICClassroomOption *(TICClassroomOption *option) {

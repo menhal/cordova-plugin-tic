@@ -17,6 +17,6 @@
 @interface ClassroomViewController : UIViewController <TICClassroomEventListener, TICClassroomIMListener>
 
 // 初始化方法
-- (instancetype)initWithClasssID:(NSString *)classId userId: (NSString *) userId truename: (NSString *)truename  teacherId: (NSString *) teacherId userScores: (NSArray *) userScore plugin: (CDVPlugin *)plugin;
+- (instancetype)initWithClasssID:(NSString *)classId userId: (NSString *) userId truename: (NSString *)truename  teacherId: (NSString *) teacherId userScores: (NSArray *) userScore roomName:(NSString *)roomName plugin: (CDVPlugin *)plugin;
 
 @end
