@@ -91,7 +91,7 @@
         <resource-file src="src/android/res/drawable-hdpi/keyboard.png" target="res/drawable-hdpi/keyboard.png" />
         <resource-file src="src/android/res/drawable-hdpi/toggle.png" target="res/drawable-hdpi/toggle.png" />
         <resource-file src="src/android/res/drawable-hdpi/student.png" target="res/drawable-hdpi/student.png" />
-        <resource-file src="src/android/res/drawable-hdpi/fireworks.png" target="res/drawable-hdpi/fireworks.png" />
+        <resource-file src="src/android/res/drawable-hdpi/fireworks.gif" target="res/drawable-hdpi/fireworks.gif" />
         <resource-file src="src/android/res/drawable-hdpi/layout_bg.xml" target="res/drawable-hdpi/layout_bg.xml" />
         <resource-file src="src/android/res/drawable-hdpi/button_corner_bg.xml" target="res/drawable-hdpi/button_corner_bg.xml" />
         <resource-file src="src/android/res/drawable-hdpi/edittext.xml" target="res/drawable-hdpi/edittext.xml" />
