@@ -360,7 +360,7 @@
         }
     }];
     
-    [self showAnimate];
+    if([userId isEqualToString:_userId]) [self showAnimate];
 }
 
 - (void) showAnimate
@@ -612,7 +612,7 @@
   
     if(![_handButton.titleLabel.text isEqualToString: @"我要发言"]) return;
     
-    [_handButton setTitle:@"等待老师同意..." forState:UIControlStateNormal];
+    [_handButton setTitle:@"等待同意" forState:UIControlStateNormal];
     
     [self sendC2CMessageToTeacher:@"TIMCustomHand"];
 }

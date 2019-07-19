@@ -653,14 +653,20 @@ public class Tic extends CordovaPlugin implements IClassEventListener, TicMessag
 
         try{
             userScores.put(userId, integral);
-            animate.setVisibility(View.VISIBLE);
+            
+            if(this.userId.equals(userId)){
 
-			new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    animate.setVisibility(View.GONE);
-                }
-            }, 2000);
+                animate.setVisibility(View.VISIBLE);
+
+
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        animate.setVisibility(View.GONE);
+                    }
+                }, 2000);
+                
+            }
 
         } catch (JSONException e){
 
@@ -704,7 +710,7 @@ public class Tic extends CordovaPlugin implements IClassEventListener, TicMessag
     private void onHandButtonClick(){
         if(!"我要发言".equals(handBtn.getText())) return;
 
-        handBtn.setText("等待老师同意...");
+        handBtn.setText("等待同意");
         messageHandler.sendCommand("TIMCustomHand");
     }
 
