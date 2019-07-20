@@ -78,6 +78,7 @@
         <source-file src="src/android/com/tencent/ticsdk/cordova/TicMessageHandler.java" target-dir="src/com/tencent/ticsdk/cordova" />
         <source-file src="src/android/com/tencent/ticsdk/cordova/TicMessageListener.java" target-dir="src/com/tencent/ticsdk/cordova" />
         <source-file src="src/android/com/tencent/ticsdk/cordova/TicMessageView.java" target-dir="src/com/tencent/ticsdk/cordova" />
+        <source-file src="src/android/com/tencent/ticsdk/cordova/PlayGifView.java" target-dir="src/com/tencent/ticsdk/cordova" />
 
         <source-file src="src/android/com/tencent/ticsdk/observer/ClassEventObservable.java" target-dir="src/com/tencent/ticsdk/observer" />
         <source-file src="src/android/com/tencent/ticsdk/observer/ClassroomIMObservable.java" target-dir="src/com/tencent/ticsdk/observer" />

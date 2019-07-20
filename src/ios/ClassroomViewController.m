@@ -345,7 +345,7 @@
         [self addChatMessage:text from:truename];
     } else {
         [self addChatMessage:text from: @"系统"];
-        [self addScoreForUser:truename integral: integral];
+        [self addScoreForUser:uid integral: integral];
     }
 }
 

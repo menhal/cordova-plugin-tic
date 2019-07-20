@@ -62,7 +62,7 @@ public class TicMessageHandler implements IClassroomIMListener{
 
             listener.onCommand(text);
 
-        } else if (fromUserId.equals(teacherId) && text.equals("TIMCustomHandReplyNO")){
+        } else if (fromUserId.equals(teacherId) && text.equals("TIMCustomHandReplyNo")){
 
             listener.onCommand(text);
 

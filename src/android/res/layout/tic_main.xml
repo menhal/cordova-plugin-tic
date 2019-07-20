@@ -307,11 +307,11 @@
 
   </LinearLayout>
 
-  <ImageView
+  <com.tencent.ticsdk.cordova.PlayGifView
       android:id="@+id/animate"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:layout_gravity="center_vertical|center_horizontal"
+      android:layout_width="100dp"
+      android:layout_height="100dp"
+      android:layout_gravity="center"
       android:src="@drawable/fireworks"
       android:visibility="gone"/>
 
