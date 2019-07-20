@@ -47,6 +47,8 @@
 
 @property (weak, nonatomic) IBOutlet UIView *AvSelfContainer;
 
+@property (weak, nonatomic) IBOutlet UIView *mainContainer;
+
 @property (weak, nonatomic) IBOutlet UIView *ChatContainer;
 
 @property (weak, nonatomic) IBOutlet UIView *LeftTopViewContainer;
@@ -56,6 +58,8 @@
 @property (weak, nonatomic) IBOutlet NSLayoutConstraint *KeyboardContainerHeight;
 
 @property (weak, nonatomic) IBOutlet NSLayoutConstraint *MainContainerTop;
+
+@property (weak, nonatomic) IBOutlet UIView *boardViewContainer;
 
 @property (weak, nonatomic) IBOutlet TXBoardView *boardView;
 
@@ -145,11 +149,10 @@
     [self.view layoutIfNeeded];
 
     // UI设置
-    
+    [self initBoardView: _boardView];
     [self initCollapseState];
     [self initChatView];
-    
-    [self printSize];
+
     
     [self.view layoutIfNeeded];
     [self initBoardAndMainRenderViews];
@@ -162,12 +165,14 @@
 
     // 关闭mic
     [self setMic:false];
-    [self printSize];
-}
-
-- (void) printSize{
     
-    NSLog(@"printSize:%f", _MainRenderViewContaienr.frame.size.height);
+    
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [self initBoardAndMainRenderViews];
+        [self adjustBoardViewPosition];
+        [self adjustBoardViewSize];
+    });
+    
 }
 
 -(void)dealloc {
@@ -647,8 +652,11 @@
     [_collapseButton setTitle: text forState: UIControlStateNormal];
     [self.view layoutIfNeeded];
     
-    [self addEqualSizeConstraint: _MainRenderViewContaienr ratio: self.isExchange ? 0.65 : 0.75];
-    [self addEqualSizeConstraint: _LeftTopViewContainer ratio: self.isExchange ? 0.75 : 0.65];
+    [self addEqualSizeConstraint: _MainRenderViewContaienr ratio: self.isExchange ? 0.56 : 0.75];
+    [self addEqualSizeConstraint: _LeftTopViewContainer ratio: self.isExchange ? 0.75 : 0.56];
+    
+    [self adjustBoardViewPosition];
+    [self adjustBoardViewSize];
 }
 
 - (void) initBoardAndMainRenderViews{
@@ -656,97 +664,62 @@
     [[_LeftTopViewContainer subviews] makeObjectsPerformSelector:@selector(removeFromSuperview)];
     [[_MainRenderViewContaienr subviews] makeObjectsPerformSelector:@selector(removeFromSuperview)];
     
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        
-        
-        TXBoardView *boardView = [[TXBoardView alloc] initWithRoomID:_classID];
-        
-        
-        [boardView getBoardData:^{
-            NSLog(@"");
-        } failed:^(int errCode, NSString *errMsg) {
-            NSLog(@"111%@", errMsg);
-        }];
-        
-        [self initBoardView: boardView];
-        
-        ILiveRenderView *renderView = [[ILiveRenderView alloc] init];
-        [self initMainRenderView: renderView];
-        
-        boardView.translatesAutoresizingMaskIntoConstraints = false;
-        renderView.translatesAutoresizingMaskIntoConstraints = false;
-        
-        if(self.isExchange){
-            
-            [_LeftTopViewContainer insertSubview:renderView atIndex:0];
-            [_MainRenderViewContaienr insertSubview:boardView atIndex:0];
-            
-            [self addEqualSizeConstraint: _MainRenderViewContaienr ratio:0.65];
-            [self addEqualSizeConstraint: _LeftTopViewContainer ratio:0.75];
-            
-        } else {
-            
-            [_LeftTopViewContainer insertSubview:boardView atIndex:0];
-            [_MainRenderViewContaienr insertSubview:renderView atIndex:0];
-            
-            [self addEqualSizeConstraint: _MainRenderViewContaienr ratio:0.75];
-            [self addEqualSizeConstraint: _LeftTopViewContainer ratio:0.56];
-        }
-        
-    });
+    ILiveRenderView *renderView = [[ILiveRenderView alloc] init];
+    [self initMainRenderView: renderView];
     
+    renderView.translatesAutoresizingMaskIntoConstraints = false;
     
+    if(self.isExchange){
+        
+        [_LeftTopViewContainer insertSubview:renderView atIndex:0];
+        [self addEqualSizeConstraint: _LeftTopViewContainer ratio:0.75];
+        
+    } else {
+
+        [_MainRenderViewContaienr insertSubview:renderView atIndex:0];
+        [self addEqualSizeConstraint: _MainRenderViewContaienr ratio:0.75];
+    }
     
+    [self adjustBoardViewPosition];
+    [self adjustBoardViewSize];
+}
+
+
+- (void) adjustBoardViewSize{
+    [self addEqualSizeConstraint: _boardViewContainer ratio:0.56];
+}
+
+- (void) adjustBoardViewPosition{
     
+    UIView *targetView = self.isExchange ? _MainRenderViewContaienr : _LeftTopViewContainer;
+    CGFloat x = self.isExchange ? _LeftTopViewContainer.frame.size.width + 10 : 0;
     
-//    _toggleButton.layer.zPosition = 999;
+    _boardViewContainer.frame = CGRectMake(x, 0, targetView.frame.size.width, targetView.frame.size.height);
 }
 
 - (IBAction)onToggleButtonClick:(id)sender {
     
     self.isExchange = !self.isExchange;
     [self initBoardAndMainRenderViews];
-    [self printSize];
-}
-
-- (void) addCenterConstraint: (UIView *) from to: (UIView *)to{
-    
-//    [to addConstraint: [NSLayoutConstraint constraintWithItem:to attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:from attribute:NSLayoutAttributeCenterX multiplier:1 constant:0]];
-//
-//    [to addConstraint: [NSLayoutConstraint constraintWithItem:to attribute:NSLayoutAttributeCenterY relatedBy:NSLayoutRelationEqual toItem:from attribute:NSLayoutAttributeCenterY multiplier:1 constant:0]];
-    
 }
 
 - (void) addEqualSizeConstraint: (UIView *)to ratio: (CGFloat) ratio{
     
-//    [to addConstraint: [NSLayoutConstraint constraintWithItem:to attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:from attribute:NSLayoutAttributeWidth multiplier:1 constant:0]];
-//
-//    [to addConstraint: [NSLayoutConstraint constraintWithItem:to attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:from attribute:NSLayoutAttributeHeight multiplier:1 constant:0]];
+    if([to.subviews count] == 0) return;
+    UIView *from = to.subviews[0];
     
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        
-        
-        if([to.subviews count] == 0) return;
-        UIView *from = to.subviews[0];
-        
-        CGSize containerSize = to.frame.size;
-        
-        //过扁
-        if((containerSize.height / containerSize.width) > ratio) {
-            CGFloat height = containerSize.width * ratio;
-            CGFloat top = (containerSize.height - height) / 2;
-            from.frame = CGRectMake(0, top, containerSize.width, height);
-        } else {
-            CGFloat width = containerSize.height / ratio;
-            CGFloat left = (containerSize.width - width) / 2;
-            from.frame = CGRectMake(left, 0, width, containerSize.height);
-        }
-        
-        
-        [from clipsToBounds];
-        
-    });
+    CGSize containerSize = to.frame.size;
     
+    //过扁
+    if((containerSize.height / containerSize.width) > ratio) {
+        CGFloat height = containerSize.width * ratio;
+        CGFloat top = (containerSize.height - height) / 2;
+        from.frame = CGRectMake(0, top, containerSize.width, height);
+    } else {
+        CGFloat width = containerSize.height / ratio;
+        CGFloat left = (containerSize.width - width) / 2;
+        from.frame = CGRectMake(left, 0, width, containerSize.height);
+    }
     
 }
 
@@ -772,6 +745,7 @@
 
 - (void)initBoardView: (TXBoardView *) boardView {
     
+    [boardView initWithRoomID:_classID];
     [boardView setBrushModel:TXBoardBrushModelNone]; // 禁止学生端画画
     
     [TXBoardSDK enableConsoleLog:YES];
@@ -785,8 +759,6 @@
             NSLog(@"加载课堂历史数据失败！！！！");
         }
     }];
-    
-    [NSThread sleepForTimeInterval:0.1];
     
 }
 

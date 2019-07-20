@@ -28,9 +28,11 @@
                 <outlet property="RightTopViewContainer" destination="MGg-sX-buR" id="KkN-o5-po1"/>
                 <outlet property="RoomTitle" destination="bf1-iY-k6L" id="joc-Ds-GTo"/>
                 <outlet property="boardView" destination="Knf-FK-Jxc" id="zYU-bF-zUY"/>
+                <outlet property="boardViewContainer" destination="HRi-ea-fJJ" id="9fm-5F-DhH"/>
                 <outlet property="collapseButton" destination="Q9p-A8-9or" id="QAB-6A-1Xq"/>
                 <outlet property="handButton" destination="eQy-1p-Fl7" id="5CL-HV-ydJ"/>
                 <outlet property="liveListContainer" destination="96i-6P-X9I" id="vW4-x0-MAP"/>
+                <outlet property="mainContainer" destination="rgP-S9-YTo" id="TWf-kZ-FDd"/>
                 <outlet property="toggleButton" destination="LAC-8k-Imo" id="gde-h3-nyM"/>
                 <outlet property="view" destination="i5M-Pr-FkT" id="mWv-9V-DQ5"/>
             </connections>
@@ -52,19 +54,7 @@
                             <subviews>
                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="MXq-8Z-lJC" userLabel="LayoutLeftTop">
                                     <rect key="frame" x="0.0" y="0.0" width="794" height="619"/>
-                                    <subviews>
-                                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Knf-FK-Jxc" userLabel="BoardView" customClass="TXBoardView">
-                                            <rect key="frame" x="0.0" y="0.0" width="794" height="619"/>
-                                            <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                        </view>
-                                    </subviews>
                                     <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                    <constraints>
-                                        <constraint firstItem="Knf-FK-Jxc" firstAttribute="centerY" secondItem="MXq-8Z-lJC" secondAttribute="centerY" id="VBm-iT-T1J"/>
-                                        <constraint firstItem="Knf-FK-Jxc" firstAttribute="centerX" secondItem="MXq-8Z-lJC" secondAttribute="centerX" id="Zqq-G3-bSW"/>
-                                        <constraint firstItem="Knf-FK-Jxc" firstAttribute="width" secondItem="MXq-8Z-lJC" secondAttribute="width" id="b5d-a1-MXV"/>
-                                        <constraint firstItem="Knf-FK-Jxc" firstAttribute="height" secondItem="MXq-8Z-lJC" secondAttribute="height" id="bUD-P0-dD6"/>
-                                    </constraints>
                                 </view>
                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="MPE-CU-ZsA" userLabel="LayoutLeftBottom">
                                     <rect key="frame" x="0.0" y="624" width="794" height="60"/>
@@ -122,30 +112,12 @@
                                             <rect key="frame" x="0.0" y="0.0" width="200" height="317"/>
                                             <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                         </view>
-                                        <button opaque="NO" contentMode="scaleAspectFit" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="LAC-8k-Imo" userLabel="ToggleButton">
-                                            <rect key="frame" x="170" y="0.0" width="30" height="30"/>
-                                            <constraints>
-                                                <constraint firstAttribute="height" constant="30" id="Hdh-og-5a5"/>
-                                                <constraint firstAttribute="width" constant="30" id="cZu-p9-3RS"/>
-                                            </constraints>
-                                            <state key="normal" image="ToggleButton"/>
-                                            <userDefinedRuntimeAttributes>
-                                                <userDefinedRuntimeAttribute type="number" keyPath="layer.zPosition">
-                                                    <integer key="value" value="10"/>
-                                                </userDefinedRuntimeAttribute>
-                                            </userDefinedRuntimeAttributes>
-                                            <connections>
-                                                <action selector="onToggleButtonClick:" destination="-1" eventType="touchUpInside" id="ezu-vl-5O9"/>
-                                            </connections>
-                                        </button>
                                     </subviews>
                                     <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                     <constraints>
                                         <constraint firstItem="5FC-Lv-qHR" firstAttribute="centerX" secondItem="MGg-sX-buR" secondAttribute="centerX" id="POb-58-CJc"/>
                                         <constraint firstItem="5FC-Lv-qHR" firstAttribute="centerY" secondItem="MGg-sX-buR" secondAttribute="centerY" id="bbE-Lt-iJo"/>
                                         <constraint firstItem="5FC-Lv-qHR" firstAttribute="height" secondItem="MGg-sX-buR" secondAttribute="height" id="hmE-QQ-KhT"/>
-                                        <constraint firstAttribute="trailing" secondItem="LAC-8k-Imo" secondAttribute="trailing" id="hnr-Gy-TAO"/>
-                                        <constraint firstItem="LAC-8k-Imo" firstAttribute="top" secondItem="MGg-sX-buR" secondAttribute="top" id="i4W-5H-y4o"/>
                                         <constraint firstItem="5FC-Lv-qHR" firstAttribute="width" secondItem="MGg-sX-buR" secondAttribute="width" id="pSD-iy-w5I"/>
                                     </constraints>
                                 </view>
@@ -288,13 +260,43 @@
                                 <constraint firstAttribute="trailing" secondItem="k9z-Uv-QXN" secondAttribute="trailing" id="u2m-gW-189"/>
                             </constraints>
                         </view>
+                        <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="HRi-ea-fJJ" userLabel="BoardViewContainer">
+                            <rect key="frame" x="0.0" y="0.0" width="794" height="619"/>
+                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            <subviews>
+                                <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Knf-FK-Jxc" userLabel="BoardView" customClass="TXBoardView">
+                                    <rect key="frame" x="0.0" y="0.0" width="794" height="619"/>
+                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                    <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                </view>
+                            </subviews>
+                            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        </view>
+                        <button opaque="NO" contentMode="scaleAspectFit" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="LAC-8k-Imo" userLabel="ToggleButton">
+                            <rect key="frame" x="974" y="0.0" width="30" height="30"/>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="30" id="Hdh-og-5a5"/>
+                                <constraint firstAttribute="width" constant="30" id="cZu-p9-3RS"/>
+                            </constraints>
+                            <state key="normal" image="ToggleButton"/>
+                            <userDefinedRuntimeAttributes>
+                                <userDefinedRuntimeAttribute type="number" keyPath="layer.zPosition">
+                                    <integer key="value" value="10"/>
+                                </userDefinedRuntimeAttribute>
+                            </userDefinedRuntimeAttributes>
+                            <connections>
+                                <action selector="onToggleButtonClick:" destination="-1" eventType="touchUpInside" id="ezu-vl-5O9"/>
+                            </connections>
+                        </button>
                     </subviews>
                     <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                     <constraints>
+                        <constraint firstItem="LAC-8k-Imo" firstAttribute="top" secondItem="rgP-S9-YTo" secondAttribute="top" id="47g-uY-eTh"/>
                         <constraint firstAttribute="bottom" secondItem="z6F-XF-AKz" secondAttribute="bottom" id="5af-no-8ju"/>
                         <constraint firstItem="JGX-iM-4NQ" firstAttribute="top" secondItem="rgP-S9-YTo" secondAttribute="top" id="9wS-yj-o4A"/>
                         <constraint firstItem="z6F-XF-AKz" firstAttribute="leading" secondItem="rgP-S9-YTo" secondAttribute="leading" id="CGU-Qo-cdp"/>
                         <constraint firstItem="JGX-iM-4NQ" firstAttribute="leading" secondItem="z6F-XF-AKz" secondAttribute="trailing" constant="10" id="HZI-eE-ege"/>
+                        <constraint firstAttribute="trailing" secondItem="LAC-8k-Imo" secondAttribute="trailing" id="Vy4-FD-3em"/>
                         <constraint firstAttribute="bottom" secondItem="JGX-iM-4NQ" secondAttribute="bottom" id="fwJ-jE-zTz"/>
                         <constraint firstAttribute="trailing" secondItem="JGX-iM-4NQ" secondAttribute="trailing" id="g3F-EW-G2S"/>
                         <constraint firstItem="z6F-XF-AKz" firstAttribute="top" secondItem="rgP-S9-YTo" secondAttribute="top" id="hcL-Fj-YFJ"/>
