@@ -473,10 +473,10 @@ public class Tic extends CordovaPlugin implements IClassEventListener, TicMessag
     }
 
     private void clearMemberVideos(){
-        LinearLayout layout = (LinearLayout) findViewById("av_root_container");
+        final LinearLayout layout = (LinearLayout) findViewById("av_root_container");
 
         for (int i = 0; i < layout.getChildCount(); i++) {
-            TicLiveView video = (TicLiveView) layout.getChildAt(i);
+            final TicLiveView video = (TicLiveView) layout.getChildAt(i);
             video.closeVideo();
 
             layout.post(new Runnable(){
@@ -520,10 +520,10 @@ public class Tic extends CordovaPlugin implements IClassEventListener, TicMessag
     }
 
     private void removeUserVideo(String userId){
-        LinearLayout layout = (LinearLayout) findViewById("av_root_container");
+        final LinearLayout layout = (LinearLayout) findViewById("av_root_container");
 
         for (int i = 0; i < layout.getChildCount(); i++) {
-            TicLiveView video = (TicLiveView) layout.getChildAt(i);
+            final TicLiveView video = (TicLiveView) layout.getChildAt(i);
 
             if(video.userId.equals(userId)) {
                 video.closeVideo();
@@ -698,7 +698,7 @@ public class Tic extends CordovaPlugin implements IClassEventListener, TicMessag
     // 在对话框显示聊天信息
     private void showMessage(String fromUserId, String text){
         String fromUserText = fromUserId.equals(teacherId) ? showTeacherName : fromUserId;
-        TicMessageView messageView = new TicMessageView(cordova.getContext(), fromUserText, text);
+        TicMessageView messageView = new TicMessageView(cordova.getActivity(), fromUserText, text);
         MessageContainer.addView(messageView);
 
         MessageContainer.post(new Runnable() {
